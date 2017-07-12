@@ -39,7 +39,7 @@ saver.restore(sess, "../model2.ckpt")
 
 sum = 0
 env = gym.make('CartPole-v0')
-env = wrappers.Monitor(env, '../monitor/cartpole-experiment-2',force=True)
+# env = wrappers.Monitor(env, '../monitor/cartpole-experiment-2',force=True)
 for p in range(100):
 	s = env.reset()
 	for t in range(200):
