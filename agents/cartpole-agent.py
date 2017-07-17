@@ -4,11 +4,11 @@ import random
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from collections import deque
-from model import NN
-from algorithm import DQN
+from ..algorithms.DQN_basic import DQN
+from ..models.FNN import FNN
 
 env = gym.make('CartPole-v0')
-ann = NN(env)
+ann = FNN(env)
 dqn = DQN(env, ann)
 dqn.fillingExperienceReplayMemory()
 dqn.train()

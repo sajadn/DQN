@@ -2,22 +2,13 @@ import gym
 import numpy as np
 import random
 import tensorflow as tf
-from parameters import HP
+from ..parameters import HP
+from ..models.modelBase import modelBase
+
 
 
 # a neural network with two hidden layers (128 nodes for each)
-class NN:
-	def __init__(self, env):
-		self.sess = tf.Session()
-		self.input_size = env.observation_space.shape[0]
-    		self.output_size = env.action_space.n
-		self.definePlaceHolders()
-		self.defineNNArchitecture()
-		self.defineLossAndTrainer()
-		init = tf.global_variables_initializer()
-		self.sess.run(init)
-		self.saver = tf.train.Saver()
-
+class FNN(modelBase):
 
 	def definePlaceHolders(self):
 		self.X = tf.placeholder(shape=[None, self.input_size],dtype=tf.float32)
@@ -50,9 +41,8 @@ class NN:
 		trainer = tf.train.GradientDescentOptimizer(learning_rate = HP['learning_rate'])
 		self.step = trainer.minimize(self.loss)
 
-
-	def predictAction(self, input):
-		return self.sess.run(self.P, feed_dict= { self.X : input })
+	def preprocess(self, input_val):
+		return input_val
 
 	def executeStep(self, input_val, output, target_action_mask):
 		_, loss, Qmean_val = self.sess.run([self.step, self.loss, self.Qmean],
@@ -61,12 +51,3 @@ class NN:
 			 	self.Q: output,
 				self.targetActionMask: target_action_mask})
 		return loss, Qmean_val
-
-	def getWeights(self):
-		return self.sess.run(self.weights)
-
-	def getQValues(self, feed_dict):
-		return self.sess.run(self.Qprime, feed_dict)
-
-	def writeWeightsInFile(self, fileName):
-		self.saver.save(self.sess, fileName)
