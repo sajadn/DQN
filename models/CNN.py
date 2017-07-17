@@ -23,7 +23,7 @@ class CNN(modelBase):
 	def definePlaceHolders(self):
 		self.X = tf.placeholder(shape=[None, WIDTH, WIDTH, HP['stacked_frame_size']],dtype=tf.float32)
 		self.Q = tf.placeholder(shape=[None],dtype=tf.float32)
-		self.targetActionMask = tf.placeholder(shape=[None, self.output_size],dtype=tf.float32)
+		self.targetActionMask = tf.placeholder(shape=[None, self.output_size], dtype=tf.float32)
 
 	def defineLossAndTrainer(self):
 		temp = tf.reduce_sum(tf.multiply(self.Qprime, self.targetActionMask), 1)
@@ -34,7 +34,7 @@ class CNN(modelBase):
 			self.loss += HP['regularization_factor'] * tf.reduce_sum(tf.square(weightRegul))
 		trainer = tf.train.RMSPropOptimizer(
             		learning_rate = HP['learning_rate'],
-           		epsilon=0.01,
+           			epsilon=0.01,
             		decay=0.95,
             		momentum=0.95)
 		self.step = trainer.minimize(self.loss)
@@ -43,32 +43,36 @@ class CNN(modelBase):
 		#TODO add initiallization
 
 		conv1 = tf.layers.conv2d(
-      			inputs= self.X,
-      			filters=32,
-			strides=[4, 4],
-      			kernel_size=[8, 8],
+				inputs= self.X,
+				filters=32,
+				strides=[4, 4],
+				kernel_size=[8, 8],
 				name="c1",
-      			activation=tf.nn.relu)
-		conv2 = tf.layers.conv2d(inputs= conv1,
+				activation=tf.nn.relu)
+
+		conv2 = tf.layers.conv2d(
+				inputs= conv1,
 				filters=64,
 				strides=[2, 2],
 				name="c2",
-      			kernel_size=[4, 4],
-      			activation=tf.nn.relu)
+				kernel_size=[4, 4],
+				activation=tf.nn.relu)
+
 		conv3 = tf.layers.conv2d(
-  			inputs=conv2,
-  			filters=64,
-			name="c3",
-  			kernel_size=[3, 3],
-  			activation=tf.nn.relu)
+				inputs=conv2,
+				filters=64,
+				name="c3",
+				kernel_size=[3, 3],
+				activation=tf.nn.relu)
+
 		flatten = tf.reshape(conv3, [-1, 7 * 7 * 64])
 		dense = tf.layers.dense(inputs=flatten, units=512, activation=tf.nn.relu)
 		self.Qprime = tf.layers.dense(inputs=dense, units=self.output_size)
 		self.P = tf.argmax(self.Qprime, 1)
 		self.Qmean = tf.reduce_mean(self.Qprime)
 		tfGraph = tf.get_default_graph()
-		k = lambda x: tfGraph.get_tensor_by_name('c'+str(x)+'/kernel:0')
-		b = lambda x: tfGraph.get_tensor_by_name('c'+str(x)+'/bias:0')
+		k = lambda x: tfGraph.get_tensor_by_name('c{}/kernel:0'.format(x))
+		b = lambda x: tfGraph.get_tensor_by_name('c{}/bias:0'.format(x))
 		self.weights = list(chain.from_iterable((k(x), b(x)) for x in range(1,4)))
 
 

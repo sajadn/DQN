@@ -24,14 +24,14 @@ class DQN(DQNBase):
             states.append(s1)
             cumReward+= reward
             cumDone = cumDone or done
-        if(cumDone == True):
-            return cumDone, cumReward
+            if(cumDone == True):
+                return cumDone, cumReward
         newState = self.model.preprocess(states)
         exp = {'state': self.s,
-        'action': action,
-        'reward': reward,
-        'next_state': newState,
-        'done': done}
+               'action': action,
+               'reward': cumReward,
+               'next_state': newState,
+               'done': cumDone}
         if(len(self.expStore) > HP['size_of_experience']):
             self.expStore.popleft()
         self.expStore.append(exp)

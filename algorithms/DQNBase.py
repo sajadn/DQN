@@ -27,15 +27,14 @@ class DQNBase(algorithmBase):
 		""
 
 	def fillERMemory(self):
-		for _ in range(HP['initial_experience_sizes']):
+		for i in range(HP['initial_experience_sizes']):
 			self.s = self.initialState()
 			total = 0
 			while True:
 				action = self.env.action_space.sample()
 				done, reward = self.executeActionStoreIt(action)
-				total += reward
 				if done:
-					print("Episode finished after {} timesteps".format(total))
+					print("Episode {} finished after {} timesteps".format(i,total))
 					break
 
 	def train(self):
@@ -48,19 +47,19 @@ class DQNBase(algorithmBase):
 			while True:
 				if(self.total_steps%HP['target_update'] == 0):
 					self.target_weights = self.model.getWeights()
-					action = self.selectAction()
-					done, reward = self.executeActionStoreIt(action)
-					t += reward
-					self.total_steps += 1
-					if(done == True):
-						break
-					l = self.experienceReplay()
-					if(self.total_steps%250==0):
-						print (l, HP['e'])
-					if(HP['e']>=0.2):
-						if(self.total_steps%HP['reducing_e_freq']==0):
-							HP['e'] -= 0.1
-			print ("episode ", episode, "finished with score: ", t)
+				action = self.selectAction()
+				done, reward = self.executeActionStoreIt(action)
+				t += reward
+				self.total_steps += 1
+				if(done == True):
+					break
+				l = self.experienceReplay()
+				if(self.total_steps%250==0):
+					print (l, HP['e'])
+				if(HP['e']>=0.2):
+					if(self.total_steps%HP['reducing_e_freq']==0):
+						HP['e'] -= 0.1
+			print ("Episode {} finished with score: {}".format(episode,t))
 		self.model.writeWeightsInFile("extra/"+self.GAME_NAME+"/weights/model.ckpt")
 
 	#e-greddy
