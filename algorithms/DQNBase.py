@@ -33,6 +33,7 @@ class DQNBase(algorithmBase):
 			while True:
 				action = self.env.action_space.sample()
 				done, reward = self.executeActionStoreIt(action)
+				total += reward
 				if done:
 					print("Episode {} finished after {} timesteps".format(i,total))
 					break
@@ -54,8 +55,8 @@ class DQNBase(algorithmBase):
 				if(done == True):
 					break
 				l = self.experienceReplay()
-				if(self.total_steps%250==0):
-					print (l, HP['e'])
+				if(self.total_steps%1000==0):
+					print ("loss: {} QMean: {} e: {}".format(l[0],l[1],HP['e']))
 				if(HP['e']>=0.2):
 					if(self.total_steps%HP['reducing_e_freq']==0):
 						HP['e'] -= 0.1
@@ -68,7 +69,7 @@ class DQNBase(algorithmBase):
 			action = self.env.action_space.sample()
 		else:
 			action = self.model.predictAction([self.s])[0]
-			return action
+		return action
 
 	def selectMiniBatch(self):
 		rcount = min(len(self.expStore), HP['mini_batch_size'])

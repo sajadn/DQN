@@ -9,12 +9,12 @@ from ..algorithms.DQNBase import DQNBase
 
 
 #DQN algorithm without error clipping
-class DQNBase(DQNBase):
+class DQN(DQNBase):
 
 	def initialState(self):
 		return self.env.reset()
 
-    def executeActionStoreIt(self, action):
+	def executeActionStoreIt(self, action):
 		s1, reward, done, info = self.env.step(action)
 		storeReward = reward if (done==False) else -100
 		exp = {'state': self.s,
@@ -26,5 +26,4 @@ class DQNBase(DQNBase):
 			self.expStore.popleft()
 		self.expStore.append(exp)
 		self.s = s1
-		print "basic",done,reward
 		return done, reward

@@ -6,6 +6,7 @@ from ..parameters import HP
 from ..models.modelBase import modelBase
 
 
+#TODO DQNBase model
 
 # a neural network with two hidden layers (128 nodes for each)
 class FNN(modelBase):
@@ -13,7 +14,7 @@ class FNN(modelBase):
 	def definePlaceHolders(self):
 		self.X = tf.placeholder(shape=[None, self.input_size],dtype=tf.float32)
 		self.Q = tf.placeholder(shape=[None],dtype=tf.float32)
-	    	self.targetActionMask = tf.placeholder(shape=[None, self.output_size],dtype=tf.float32)
+		self.targetActionMask = tf.placeholder(shape=[None, self.output_size],dtype=tf.float32)
 
 	def defineNNArchitecture(self):
 		W1 = tf.Variable(tf.random_uniform([self.input_size, 128],0,0.01))
@@ -33,8 +34,8 @@ class FNN(modelBase):
 
 	def defineLossAndTrainer(self):
 		temp = tf.reduce_sum(tf.multiply(self.Qprime, self.targetActionMask), 1)
-		print 'temp shape', temp.shape
-		print 'Q shape ',self.Q.shape
+		print ('temp shape', temp.shape)
+		print ('Q shape ',self.Q.shape)
 		self.loss = tf.reduce_mean(tf.square(temp -  self.Q))
 		for weightRegul in self.weights[0::2]:
 			self.loss += HP['regularization_factor'] * tf.reduce_sum(tf.square(weightRegul))

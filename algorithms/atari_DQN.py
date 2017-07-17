@@ -3,7 +3,7 @@ import random
 from ..parameters import HP
 from ..algorithms.DQNBase import DQNBase
 
-
+#TODO seperate executing action from storing it
 class DQN(DQNBase):
     def initialState(self):
         states = []
