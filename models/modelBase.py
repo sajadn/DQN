@@ -1,5 +1,7 @@
 import abc
 import tensorflow as tf
+import os
+
 
 #TODO replace X with input and Q with output
 
@@ -43,3 +45,6 @@ class modelBase(abc.ABC):
 
     def writeWeightsInFile(self, fileName):
         self.saver.save(self.sess, fileName)
+
+    def readFromFile(self, fileName):
+        self.saver.restore(self.sess, fileName)

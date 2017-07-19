@@ -12,12 +12,13 @@ import abc
 #DQN algorithm without error clipping
 class DQNBase(algorithmBase):
 
-	def __init__(self, env, model):
+	def __init__(self, env, model, up):
 		self.env = env
 		self.model = model
 		self.expStore =  deque()
 		self.total_steps = 0
 		self.GAME_NAME = self.env.env.spec.id
+		self.updateStrategy = up
 
 	@abc.abstractmethod
 	def initialState(self):
@@ -60,8 +61,10 @@ class DQNBase(algorithmBase):
 				if(HP['e']>=0.2):
 					if(self.total_steps%HP['reducing_e_freq']==0):
 						HP['e'] -= 0.1
-			print ("Episode {} finished with score: {}".format(episode,t))
-		self.model.writeWeightsInFile("extra/"+self.GAME_NAME+"/weights/model.ckpt")
+			print ("Episode {} finished Score: {}".format(episode,t))
+
+		self.model.writeWeightsInFile(
+			"src/extra/{}/weights/model.ckpt".format(self.GAME_NAME))
 
 	#e-greddy
 	def selectAction(self):
@@ -81,17 +84,9 @@ class DQNBase(algorithmBase):
 		Y_val = []
 		target_action_mask = np.zeros((len(sexperiences), self.model.output_size), dtype=int)
 		for index, exp in enumerate(sexperiences):
-			feed_dict = {self.model.X: [exp['next_state']]}
-			feed_dict.update(zip(self.model.weights, self.target_weights))
-			Q1val = self.model.getQValues(feed_dict)
-			maxQ1 = np.max(Q1val)
 			X_val.append(exp['state'])
 			target_action_mask[index][exp['action']] = 1
-			if(exp['done']==True):
-				cQ = exp['reward']
-			else:
-				cQ = exp['reward'] + HP['y'] * maxQ1
-			Y_val.append(cQ)
+			Y_val.append(self.updateStrategy.execute(self.model, exp,self.target_weights))
 		X_val = np.array(X_val)
 		Y_val = np.array(Y_val)
 		return self.model.executeStep(X_val, Y_val, target_action_mask)
