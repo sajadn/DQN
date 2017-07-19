@@ -8,6 +8,7 @@ import os
 #TODO search about how to force subclasses to have concrete fields
 class modelBase(abc.ABC):
     def __init__(self, env):
+        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
         self.sess = tf.Session()
         self.input_size = env.observation_space.shape[0]
         self.output_size = env.action_space.n
