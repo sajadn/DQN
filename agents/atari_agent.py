@@ -6,8 +6,10 @@ import matplotlib.pyplot as plt
 from collections import deque
 from ..algorithms.atari_DQN import DQN
 from ..models.CNN import CNN
+from ..algorithms.update_strategy.targetNewtork import targetNetworkStrategy
 
 env = gym.make('Breakout-v0')
 ann = CNN(env)
-dqn = DQN(env, ann)
+tns = targetNetworkStrategy()
+dqn = DQN(env, ann, tns)
 dqn.train()

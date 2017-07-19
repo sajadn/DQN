@@ -7,6 +7,7 @@ from collections import deque
 from ..algorithms.cartPole_DQN import DQN
 from ..models.FNN import FNN
 from ..algorithms.update_strategy.targetNewtork import targetNetworkStrategy
+
 env = gym.make('CartPole-v0')
 ann = FNN(env)
 tns = targetNetworkStrategy()
