@@ -19,7 +19,7 @@ from ..models.FNN import FNN
 gameName = 'CartPole-v0'
 env = gym.make(gameName)
 mFNN = FNN(env)
-mFNN.readFromFile("src/extra/{}/weights/model.ckpt".format(gameName	))
+mFNN.readFromFile("Reinforcement-Learning/extra/{}/weights/model.ckpt".format(gameName	))
 
 sum = 0
 # env = wrappers.Monitor(env, 'extra/CartPole-v0/monitor/experiment1',force=True)
