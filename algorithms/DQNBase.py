@@ -58,13 +58,14 @@ class DQNBase(algorithmBase):
 				l = self.experienceReplay()
 				if(self.total_steps%1000==0):
 					print ("loss: {} QMean: {} e: {}".format(l[0],l[1],HP['e']))
+					self.model.writeWeightsInFile(
+						"Reinforcement-Learning/extra/{}/weights/model.ckpt".format(self.GAME_NAME))
 				if(HP['e']>=0.2):
 					if(self.total_steps%HP['reducing_e_freq']==0):
 						HP['e'] -= 0.1
 			print ("Episode {} finished Score: {}".format(episode,t))
 
-		self.model.writeWeightsInFile(
-			"Reinforcement-Learning/extra/{}/weights/model.ckpt".format(self.GAME_NAME))
+
 
 	#e-greddy
 	def selectAction(self):

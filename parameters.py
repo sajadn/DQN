@@ -3,7 +3,7 @@ HP = {
 	'e': 1,
 	'reducing_e_freq': 10**5,
 	'y': 0.99,
-	'num_episodes': 2500,
+	'num_episodes': 80000,
 	'size_of_experience' : 10**6,
 	'mini_batch_size' : 32,
 	'target_update': 10**4,
