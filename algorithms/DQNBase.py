@@ -64,7 +64,7 @@ class DQNBase(algorithmBase):
 			print ("Episode {} finished Score: {}".format(episode,t))
 
 		self.model.writeWeightsInFile(
-			"src/extra/{}/weights/model.ckpt".format(self.GAME_NAME))
+			"Reinforcement-Learning/extra/{}/weights/model.ckpt".format(self.GAME_NAME))
 
 	#e-greddy
 	def selectAction(self):
