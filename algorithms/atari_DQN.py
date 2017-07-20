@@ -4,6 +4,7 @@ from ..parameters import HP
 from ..algorithms.DQNBase import DQNBase
 
 #TODO seperate executing action from storing it
+#TODO target nETWORK
 class DQN(DQNBase):
     def initialState(self):
         states = []
@@ -36,4 +37,4 @@ class DQN(DQNBase):
             self.expStore.popleft()
         self.expStore.append(exp)
         self.s = newState
-        return cumDone, cumReward
+        return cumDone, cumReward, newState

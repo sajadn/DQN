@@ -50,7 +50,7 @@ class DQNBase(algorithmBase):
 				if(self.total_steps%HP['target_update'] == 0):
 					self.target_weights = self.model.getWeights()
 				action = self.selectAction()
-				done, reward = self.executeActionStoreIt(action)
+				done, reward, _ = self.executeActionStoreIt(action)
 				t += reward
 				self.total_steps += 1
 				if(done == True):

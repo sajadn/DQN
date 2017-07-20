@@ -26,4 +26,4 @@ class DQN(DQNBase):
 			self.expStore.popleft()
 		self.expStore.append(exp)
 		self.s = s1
-		return done, reward
+		return done, reward, s1
