@@ -37,7 +37,7 @@ class FNN(modelBase):
 		print ('temp shape', temp.shape)
 		print ('Q shape ',self.Q.shape)
 		mloss = temp -  self.Q
-		self.loss = tf.reduce_mean(tf.where(tf.abs(mloss)<=0.5, tf.square(mloss), tf.abs(mloss)))
+		self.loss = tf.reduce_mean(tf.where(tf.abs(mloss)<= 0.5, tf.square(mloss), tf.abs(mloss)))
 		for weightRegul in self.weights[0::2]:
 			self.loss += HP['regularization_factor'] * tf.reduce_sum(tf.square(weightRegul))
 		trainer = tf.train.GradientDescentOptimizer(learning_rate = HP['learning_rate'])

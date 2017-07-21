@@ -11,13 +11,12 @@ import abc
 
 #DQN algorithm without error clipping
 #TODO newtork target strategy typo
-#TODO seperate store and execute and make state passing functional
 class DQNBase(algorithmBase):
 
-	def __init__(self, env, model, up):
+	def __init__(self, env, model, up, store = deque()):
 		self.env = env
 		self.model = model
-		self.expStore =  deque()
+		self.expStore =  store
 		self.total_steps = 0
 		self.GAME_NAME = self.env.env.spec.id
 		self.updateStrategy = up
@@ -26,18 +25,20 @@ class DQNBase(algorithmBase):
 	def initialState(self):
 		""
 	@abc.abstractmethod
-	def executeActionStoreIt(self, action):
+	def executeAction(self, action):
 		""
 
 	def fillERMemory(self):
 		for i in range(HP['initial_experience_sizes']):
-			self.s = self.initialState()
+			state = self.initialState()
 			total = 0
 			while True:
 				action = self.env.action_space.sample()
-				done, reward, _ = self.executeActionStoreIt(action)
-				total += reward
-				if done:
+				exp = self.executeAction(action, state)
+				self.storeExperience(exp)
+				state = exp['next_state']
+				total += exp['reward']
+				if exp['done']:
 					print("Episode {} finished after {} timesteps".format(i,total))
 					break
 
@@ -46,16 +47,18 @@ class DQNBase(algorithmBase):
 		self.total_steps = 0
 		sum = 0
 		for episode in range(HP['num_episodes']):
-			self.s = self.initialState()
+			state = self.initialState()
 			t = 0
 			while True:
 				if(self.total_steps%HP['target_update'] == 0):
 					self.target_weights = self.model.getWeights()
-				action = self.selectAction()
-				done, reward, _ = self.executeActionStoreIt(action)
-				t += reward
+				action = self.selectAction(state)
+				exp = self.executeAction(action, state)
 				self.total_steps += 1
-				if(done == True):
+				self.storeExperience(exp)
+				state = exp['next_state']
+				t += exp['reward']
+				if(exp['done'] == True):
 					break
 				l = self.experienceReplay()
 				if(self.total_steps%1000==0):
@@ -70,16 +73,21 @@ class DQNBase(algorithmBase):
 
 
 	#e-greddy
-	def selectAction(self):
+	def selectAction(self, state):
 		if np.random.rand(1) < HP['e']:
 			action = self.env.action_space.sample()
 		else:
-			action = self.model.predictAction([self.s])[0]
+			action = self.model.predictAction([state])[0]
 		return action
 
 	def selectMiniBatch(self):
 		rcount = min(len(self.expStore), HP['mini_batch_size'])
 		return random.sample(self.expStore,rcount)
+
+	def storeExperience(self, exp):
+		if(len(self.expStore) > HP['size_of_experience']):
+			self.expStore.popleft()
+		self.expStore.append(exp)
 
 	def experienceReplay(self):
 		sexperiences = self.selectMiniBatch()
@@ -99,15 +107,15 @@ class DQNBase(algorithmBase):
 		"Reinforcement-Learning/extra/{}/weights/model.ckpt".format(self.GAME_NAME))
 		sum = 0
 		for p in range(100):
-			self.s = self.initialState()
+			state = self.initialState()
 			total = 0
 			while True:
 				self.env.render()
-				action = self.model.predictAction([self.s])
-				done, reward, s1 = self.executeActionStoreIt(action[0])
-				self.s = s1
-				total+= reward
-				if done == True:
+				action = self.model.predictAction([state])
+				exp = self.executeAction(action[0], state)
+				state = exp['next_state']
+				total+= exp['reward']
+				if exp['done'] == True:
 					break
 			print ("episode", p , "score is: ",total)
 			sum += total + 1

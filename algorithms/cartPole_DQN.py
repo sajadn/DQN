@@ -14,16 +14,11 @@ class DQN(DQNBase):
 	def initialState(self):
 		return self.env.reset()
 
-	def executeActionStoreIt(self, action):
+	def executeAction(self, action, state):
 		s1, reward, done, info = self.env.step(action)
-		storeReward = reward if (done==False) else -100
-		exp = {'state': self.s,
+		# storeReward = reward if (done==False) else -100
+		return {'state': state,
 				'action': action,
-				'reward': storeReward,
+				'reward': reward,
 				'next_state': s1,
 				'done': done}
-		if(len(self.expStore) > HP['size_of_experience']):
-			self.expStore.popleft()
-		self.expStore.append(exp)
-		self.s = s1
-		return done, reward, s1
