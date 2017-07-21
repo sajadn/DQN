@@ -10,6 +10,8 @@ import abc
 
 
 #DQN algorithm without error clipping
+#TODO newtork target strategy typo
+#TODO seperate store and execute and make state passing functional
 class DQNBase(algorithmBase):
 
 	def __init__(self, env, model, up):
@@ -33,7 +35,7 @@ class DQNBase(algorithmBase):
 			total = 0
 			while True:
 				action = self.env.action_space.sample()
-				done, reward = self.executeActionStoreIt(action)
+				done, reward, _ = self.executeActionStoreIt(action)
 				total += reward
 				if done:
 					print("Episode {} finished after {} timesteps".format(i,total))
@@ -91,3 +93,22 @@ class DQNBase(algorithmBase):
 		X_val = np.array(X_val)
 		Y_val = np.array(Y_val)
 		return self.model.executeStep(X_val, Y_val, target_action_mask)
+
+	def play(self):
+		self.model.readFromFile(
+		"Reinforcement-Learning/extra/{}/weights/model.ckpt".format(self.GAME_NAME))
+		sum = 0
+		for p in range(100):
+			self.s = self.initialState()
+			total = 0
+			while True:
+				self.env.render()
+				action = self.model.predictAction([self.s])
+				done, reward, s1 = self.executeActionStoreIt(action[0])
+				self.s = s1
+				total+= reward
+				if done == True:
+					break
+			print ("episode", p , "score is: ",total)
+			sum += total + 1
+		print (sum/100)

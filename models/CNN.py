@@ -25,13 +25,17 @@ class CNN(modelBase):
 		self.Q = tf.placeholder(shape=[None],dtype=tf.float32)
 		self.targetActionMask = tf.placeholder(shape=[None, self.output_size], dtype=tf.float32)
 
+
+
+
 	def defineLossAndTrainer(self):
 		temp = tf.reduce_sum(tf.multiply(self.Qprime, self.targetActionMask), 1)
 		print ('temp shape', temp.shape)
 		print ('Q shape ',self.Q.shape)
-		self.loss = tf.reduce_mean(tf.square(temp -  self.Q))
+		mloss = temp -  self.Q
+		self.loss = tf.reduce_mean(tf.where(tf.abs(mloss)<0.5, tf.square(mloss), tf.abs(mloss)))
 		for weightRegul in self.weights[0::2]:
-			self.loss += HP['regularization_factor'] * tf.reduce_sum(tf.square(weightRegul))
+			self.loss += (1/2)*HP['regularization_factor'] * tf.reduce_sum(tf.square(weightRegul))
 		trainer = tf.train.RMSPropOptimizer(
             		learning_rate = HP['learning_rate'],
            			epsilon=0.01,
