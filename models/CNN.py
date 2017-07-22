@@ -24,16 +24,20 @@ class CNN(modelBase):
 		self.X = tf.placeholder(shape=[None, WIDTH, WIDTH, HP['stacked_frame_size']],dtype=tf.float32)
 		self.Q = tf.placeholder(shape=[None],dtype=tf.float32)
 		self.targetActionMask = tf.placeholder(shape=[None, self.output_size], dtype=tf.float32)
+		self.prioritizedWeights = tf.placeholder(shape=[None], dtype=tf.float32)
 
 
 
 
 	def defineLossAndTrainer(self):
-		temp = tf.reduce_sum(tf.multiply(self.Qprime, self.targetActionMask), 1)
-		print ('temp shape', temp.shape)
-		print ('Q shape ',self.Q.shape)
-		mloss = temp -  self.Q
-		self.loss = tf.reduce_mean(tf.where(tf.abs(mloss)<0.5, tf.square(mloss), tf.abs(mloss)))
+		temp = tf.reduce_sum(tf.multiply(tf.multiply(self.Qprime, self.targetActionMask), self.prioritizedWeights), 1)
+		self.TDerror = temp -  self.Q
+		#Huber function
+		if(HP['error_clip']==1):
+			self.loss = tf.reduce_mean(tf.where(tf.abs(self.TDerror)<0.5, tf.square(self.TDerror), tf.abs(self.TDerror)))
+		else:
+			self.loss = tf.reduce_mean(tf.square(self.TDerror))
+
 		for weightRegul in self.weights[0::2]:
 			self.loss += (1/2)*HP['regularization_factor'] * tf.reduce_sum(tf.square(weightRegul))
 		trainer = tf.train.RMSPropOptimizer(
@@ -80,10 +84,12 @@ class CNN(modelBase):
 		self.weights = list(chain.from_iterable((k(x), b(x)) for x in range(1,4)))
 
 
-	def executeStep(self, input_val, output, target_action_mask):
-		_, loss, Qmean_val = self.sess.run([self.step, self.loss, self.Qmean],
+	def executeStep(self, input_val, output, target_action_mask, weights = np.array([HP['mini_batch_size']]).fill(1)):
+
+		_, loss, Qmean_val, TDerror_val = self.sess.run([self.step, self.loss, self.Qmean, self.TDerror],
 			feed_dict = {
 				self.X: input_val,
 			 	self.Q: output,
-				self.targetActionMask: target_action_mask})
-		return loss, Qmean_val
+				self.targetActionMask: target_action_mask,
+				self.prioritizedWeights: weights})
+		return loss, Qmean_val, TDerror_val

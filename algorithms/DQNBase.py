@@ -13,13 +13,13 @@ import abc
 #TODO newtork target strategy typo
 class DQNBase(algorithmBase):
 
-	def __init__(self, env, model, up, store = deque()):
+	def __init__(self, env, model, update_policy, memory_policy):
 		self.env = env
 		self.model = model
-		self.expStore =  store
-		self.total_steps = 0
+		self.memory_policy = memory_policy
+		self.update_policy = update_policy
 		self.GAME_NAME = self.env.env.spec.id
-		self.updateStrategy = up
+		self.total_steps = 0
 
 	@abc.abstractmethod
 	def initialState(self):
@@ -35,12 +35,13 @@ class DQNBase(algorithmBase):
 			while True:
 				action = self.env.action_space.sample()
 				exp = self.executeAction(action, state)
-				self.storeExperience(exp)
+				self.memory_policy.storeExperience(exp)
 				state = exp['next_state']
 				total += exp['reward']
 				if exp['done']:
-					print("Episode {} finished after {} timesteps".format(i,total))
+					print("Episode {} finished, Score: {}".format(i,total))
 					break
+		print ("Random Agent Finished")
 
 	def train(self):
 		self.fillERMemory()
@@ -54,13 +55,15 @@ class DQNBase(algorithmBase):
 					self.target_weights = self.model.getWeights()
 				action = self.selectAction(state)
 				exp = self.executeAction(action, state)
+				self.memory_policy.storeExperience(exp)
 				self.total_steps += 1
-				self.storeExperience(exp)
 				state = exp['next_state']
 				t += exp['reward']
 				if(exp['done'] == True):
 					break
-				l = self.experienceReplay()
+				l = self.memory_policy.experienceReplay(
+							self.model, self.target_weights, self.update_policy)
+
 				if(self.total_steps%1000==0):
 					print ("loss: {} QMean: {} e: {}".format(l[0],l[1],HP['e']))
 					self.model.writeWeightsInFile(
@@ -68,7 +71,7 @@ class DQNBase(algorithmBase):
 				if(HP['e']>=0.2):
 					if(self.total_steps%HP['reducing_e_freq']==0):
 						HP['e'] -= 0.1
-			print ("Episode {} finished Score: {}".format(episode,t))
+			print ("Episode {} finished, Score: {}".format(episode,t))
 
 
 
@@ -80,27 +83,7 @@ class DQNBase(algorithmBase):
 			action = self.model.predictAction([state])[0]
 		return action
 
-	def selectMiniBatch(self):
-		rcount = min(len(self.expStore), HP['mini_batch_size'])
-		return random.sample(self.expStore,rcount)
 
-	def storeExperience(self, exp):
-		if(len(self.expStore) > HP['size_of_experience']):
-			self.expStore.popleft()
-		self.expStore.append(exp)
-
-	def experienceReplay(self):
-		sexperiences = self.selectMiniBatch()
-		X_val = []
-		Y_val = []
-		target_action_mask = np.zeros((len(sexperiences), self.model.output_size), dtype=int)
-		for index, exp in enumerate(sexperiences):
-			X_val.append(exp['state'])
-			target_action_mask[index][exp['action']] = 1
-			Y_val.append(self.updateStrategy.execute(self.model, exp,self.target_weights))
-		X_val = np.array(X_val)
-		Y_val = np.array(Y_val)
-		return self.model.executeStep(X_val, Y_val, target_action_mask)
 
 	def play(self):
 		self.model.readFromFile(

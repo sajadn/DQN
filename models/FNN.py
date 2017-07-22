@@ -15,6 +15,8 @@ class FNN(modelBase):
 		self.X = tf.placeholder(shape=[None, self.input_size],dtype=tf.float32)
 		self.Q = tf.placeholder(shape=[None],dtype=tf.float32)
 		self.targetActionMask = tf.placeholder(shape=[None, self.output_size],dtype=tf.float32)
+		self.prioritizedWeights = tf.placeholder(shape=[None], dtype=tf.float32)
+
 
 	def defineNNArchitecture(self):
 		W1 = tf.Variable(tf.random_uniform([self.input_size, 128],0,0.01))
@@ -33,11 +35,16 @@ class FNN(modelBase):
 		self.weights = [W1, b1, W2, b2, W3, b3]
 
 	def defineLossAndTrainer(self):
-		temp = tf.reduce_sum(tf.multiply(self.Qprime, self.targetActionMask), 1)
+		temp = tf.multiply(tf.reduce_sum(tf.multiply(self.Qprime, self.targetActionMask), 1), self.prioritizedWeights)
 		print ('temp shape', temp.shape)
 		print ('Q shape ',self.Q.shape)
-		mloss = temp -  self.Q
-		self.loss = tf.reduce_mean(tf.where(tf.abs(mloss)<= 0.5, tf.square(mloss), tf.abs(mloss)))
+		self.TDerror = temp -  self.Q
+		if(HP['error_clip']==1):
+			print ("with clipping")
+			self.loss = tf.reduce_mean(tf.where(tf.abs(self.TDerror)<0.5, tf.square(self.TDerror), tf.abs(self.TDerror)))
+		else:
+			print ("without clipping")
+			self.loss = tf.reduce_mean(tf.square(self.TDerror))
 		for weightRegul in self.weights[0::2]:
 			self.loss += HP['regularization_factor'] * tf.reduce_sum(tf.square(weightRegul))
 		trainer = tf.train.GradientDescentOptimizer(learning_rate = HP['learning_rate'])
@@ -46,10 +53,11 @@ class FNN(modelBase):
 	def preprocess(self, input_val):
 		return input_val
 
-	def executeStep(self, input_val, output, target_action_mask):
-		_, loss, Qmean_val = self.sess.run([self.step, self.loss, self.Qmean],
+	def executeStep(self, input_val, output, target_action_mask, weights = np.ones(HP['mini_batch_size'])):
+		_, loss, Qmean_val, TDerror_val = self.sess.run([self.step, self.loss, self.Qmean, self.TDerror],
 			feed_dict = {
 				self.X: input_val,
 			 	self.Q: output,
-				self.targetActionMask: target_action_mask})
-		return loss, Qmean_val
+				self.targetActionMask: target_action_mask,
+				self.prioritizedWeights: weights})
+		return loss, Qmean_val, TDerror_val

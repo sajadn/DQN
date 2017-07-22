@@ -1,16 +1,20 @@
 
 HP = {
 	'e': 1,
-	'reducing_e_freq': 6000,
+	'reducing_e_freq': 6*10**3,
 	'y': 0.99,
-	'num_episodes': 3000,
+	'num_episodes': 4000,
 	'size_of_experience' : 10**6,
 	'mini_batch_size' : 64,
 	'target_update': 10**3,
 	'learning_rate': 0.001,
 	'regularization_factor': 0.001,
 	'initial_experience_sizes': 700,
-	'stacked_frame_size': 4
+	'stacked_frame_size': 4,
+	'beta': 0.5,
+	'alpha': 0.5,
+	'epsilon_prio': 0.001,
+	'error_clip': 0
 }
 
 
