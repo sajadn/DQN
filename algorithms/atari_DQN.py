@@ -30,7 +30,6 @@ class DQN(DQNBase):
                 for j in range(i+1, HP['stacked_frame_size']):
                     states.append(s1)
                 break
-        storeReward = cumReward if (cumDone==False)else(cumReward-(HP['stacked_frame_size']-i))
         newState = self.model.preprocess(states)
         return {'state': state,
                'action': action,

@@ -67,6 +67,7 @@ class DQNBase(algorithmBase):
 						HP['e'] -= 0.1
 
 			if(episode%50==0):
+				print ('average (50E):', total/50)
 				total = 0.0
 				print ('e',HP['e'])
 				self.model.writer.add_summary(summary, episode)

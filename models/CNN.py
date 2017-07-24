@@ -57,8 +57,8 @@ class CNN(DQNBaseModel):
 				activation=tf.nn.relu)
 
 		flatten = tf.reshape(conv3, [-1, 7 * 7 * 64])
-		dense = tf.layers.dense(inputs=flatten, units=512, activation=tf.nn.relu)
-		self.Qprime = tf.layers.dense(inputs=dense, units=self.output_size)
+		dense = tf.layers.dense(inputs=flatten, units=512, activation=tf.nn.relu, name="FC1")
+		self.Qprime = tf.layers.dense(inputs=dense, units=self.output_size, name="FC2")
 		self.P = tf.argmax(self.Qprime, 1)
 		self.Qmean = tf.reduce_mean(self.Qprime)
 		tf.summary.scalar("Qmean", self.Qmean)
