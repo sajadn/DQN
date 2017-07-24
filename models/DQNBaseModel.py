@@ -33,15 +33,17 @@ class DQNBaseModel(modelBase):
 		""
 
 	def defineLossAndTrainer(self):
-		temp = tf.multiply(tf.reduce_sum(tf.multiply(self.Qprime, self.targetActionMask), 1), self.prioritizedWeights)
-		self.TDerror = temp -  self.Q
-		#Huber function
-		if(HP['error_clip']==1):
-			self.loss = tf.reduce_mean(tf.where(tf.abs(self.TDerror)<1.0, 0.5*tf.square(self.TDerror), tf.abs(self.TDerror)-0.5))
-		else:
-			self.loss = tf.reduce_mean(tf.square(self.TDerror))
-		tf.summary.scalar("loss", self.loss)
-		for weightRegul in self.weights[0::2]:
-			self.loss += (1/2)*HP['regularization_factor'] * tf.reduce_sum(tf.square(weightRegul))
-		trainer = self.defineTrainer()
-		self.step = trainer.minimize(self.loss)
+		with tf.name_scope("loss"):
+			temp = tf.multiply(tf.reduce_sum(tf.multiply(self.Qprime, self.targetActionMask), 1), self.prioritizedWeights)
+			self.TDerror = temp -  self.Q
+			#Huber function
+			if(HP['error_clip']==1):
+				self.loss = tf.reduce_mean(tf.where(tf.abs(self.TDerror)<1.0, 0.5*tf.square(self.TDerror), tf.abs(self.TDerror)-0.5))
+			else:
+				self.loss = tf.reduce_mean(tf.square(self.TDerror))
+			tf.summary.scalar("loss", self.loss)
+			for weightRegul in self.weights[0::2]:
+				self.loss += (1/2)*HP['regularization_factor'] * tf.reduce_sum(tf.square(weightRegul))
+		with tf.name_scope("trainer"):
+			trainer = self.defineTrainer()
+			self.step = trainer.minimize(self.loss)
