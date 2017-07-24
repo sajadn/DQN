@@ -33,6 +33,6 @@ class DQN(DQNBase):
         newState = self.model.preprocess(states)
         return {'state': state,
                'action': action,
-               'reward': storeReward,
+               'reward': cumReward,
                'next_state': newState,
                'done': cumDone }
