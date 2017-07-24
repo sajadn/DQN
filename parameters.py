@@ -9,7 +9,7 @@ HP = {
 	'target_update': 10**3,
 	'learning_rate': 0.00025,
 	'regularization_factor': 0.001,
-	'initial_experience_sizes': 2000,
+	'initial_experience_sizes': 50,
 	'stacked_frame_size': 4,
 	'beta': 0.5,
 	'alpha': 0.5,

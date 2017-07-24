@@ -25,7 +25,7 @@ class CNN(modelBase):
 		self.Q = tf.placeholder(shape=[None],dtype=tf.float32)
 		self.targetActionMask = tf.placeholder(shape=[None, self.output_size], dtype=tf.float32)
 		self.prioritizedWeights = tf.placeholder(shape=[None], dtype=tf.float32)
-		self.reward = tf.placeholder(shape=(),dtype=tf.float32, name="reward")
+		self.reward = tf.placeholder(dtype=tf.float32, name="reward")
 		tf.summary.scalar("reward", self.reward)
 
 
@@ -34,7 +34,7 @@ class CNN(modelBase):
 
 
 	def defineLossAndTrainer(self):
-		temp = tf.reduce_sum(tf.multiply(tf.multiply(self.Qprime, self.targetActionMask), self.prioritizedWeights), 1)
+		temp = tf.multiply(tf.reduce_sum(tf.multiply(self.Qprime, self.targetActionMask), 1), self.prioritizedWeights)
 		self.TDerror = temp -  self.Q
 		#Huber function
 		if(HP['error_clip']==1):
