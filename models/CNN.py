@@ -7,10 +7,12 @@ import matplotlib.pyplot as plt
 from scipy.misc import imresize
 from itertools import chain
 from ..models.modelBase import modelBase
+from ..models.DQNBaseModel import DQNBaseModel
+
 
 
 WIDTH = 84
-class CNN(modelBase):
+class CNN(DQNBaseModel):
 	def convertToGrayScale(self, frame):
 		data = imresize(frame, (WIDTH, WIDTH, 3))
 		return np.dot(data, [0.2126, 0.7152, 0.0722])
@@ -19,41 +21,18 @@ class CNN(modelBase):
 		f = np.vectorize(self.convertToGrayScale,signature='(n,m,k)->(h,i)')
 		return np.dstack(tuple(f(input_val)))
 
+	def defineInput(self):
+	 	return tf.placeholder(shape=[None, WIDTH, WIDTH, HP['stacked_frame_size']],dtype=tf.float32)
 
-	def definePlaceHolders(self):
-		self.X = tf.placeholder(shape=[None, WIDTH, WIDTH, HP['stacked_frame_size']],dtype=tf.float32)
-		self.Q = tf.placeholder(shape=[None],dtype=tf.float32)
-		self.targetActionMask = tf.placeholder(shape=[None, self.output_size], dtype=tf.float32)
-		self.prioritizedWeights = tf.placeholder(shape=[None], dtype=tf.float32)
-		self.reward = tf.placeholder(dtype=tf.float32, name="reward")
-		tf.summary.scalar("reward", self.reward)
-
-
-
-
-
-
-	def defineLossAndTrainer(self):
-		temp = tf.multiply(tf.reduce_sum(tf.multiply(self.Qprime, self.targetActionMask), 1), self.prioritizedWeights)
-		self.TDerror = temp -  self.Q
-		#Huber function
-		if(HP['error_clip']==1):
-			self.loss = tf.reduce_mean(tf.where(tf.abs(self.TDerror)<1.0, 0.5*tf.square(self.TDerror), tf.abs(self.TDerror)-0.5))
-		else:
-			self.loss = tf.reduce_mean(tf.square(self.TDerror))
-		tf.summary.scalar("loss", self.loss)
-		for weightRegul in self.weights[0::2]:
-			self.loss += (1/2)*HP['regularization_factor'] * tf.reduce_sum(tf.square(weightRegul))
-		trainer = tf.train.RMSPropOptimizer(
+	def defineTrainer(self):
+		return tf.train.RMSPropOptimizer(
             		learning_rate = HP['learning_rate'],
            			epsilon=0.01,
             		decay=0.95,
             		momentum=0.95)
-		self.step = trainer.minimize(self.loss)
 
 	def defineNNArchitecture(self):
 		#TODO add initiallization
-
 		conv1 = tf.layers.conv2d(
 				inputs= self.X,
 				filters=32,
@@ -87,14 +66,3 @@ class CNN(modelBase):
 		k = lambda x: tfGraph.get_tensor_by_name('c{}/kernel:0'.format(x))
 		b = lambda x: tfGraph.get_tensor_by_name('c{}/bias:0'.format(x))
 		self.weights = list(chain.from_iterable((k(x), b(x)) for x in range(1,4)))
-
-
-	def executeStep(self, input_val, output, target_action_mask, total_reward, weights = np.ones(HP['mini_batch_size'])):
-		_, summary, TDerror_val = self.sess.run([self.step, self.summary, self.TDerror],
-			feed_dict = {
-				self.X: input_val,
-			 	self.Q: output,
-				self.targetActionMask: target_action_mask,
-				self.prioritizedWeights: weights,
-				self.reward: total_reward})
-		return summary, TDerror_val
