@@ -46,10 +46,9 @@ class DQNBase(algorithmBase):
 	def train(self):
 		self.fillERMemory()
 		self.total_steps = 0
-		sum = 0
-		for episode in range(HP['num_episodes']):
+		total = 0.0
+		for episode in range(1, HP['num_episodes']):
 			state = self.initialState()
-			t = 0
 			while True:
 				if(self.total_steps%HP['target_update'] == 0):
 					self.target_weights = self.model.getWeights()
@@ -58,20 +57,22 @@ class DQNBase(algorithmBase):
 				self.memory_policy.storeExperience(exp)
 				self.total_steps += 1
 				state = exp['next_state']
-				t += exp['reward']
+				total += exp['reward']
+				summary = self.memory_policy.experienceReplay(
+							self.model, self.target_weights, self.update_policy, total/50)
 				if(exp['done'] == True):
 					break
-				l = self.memory_policy.experienceReplay(
-							self.model, self.target_weights, self.update_policy)
-
-				if(self.total_steps%1000==0):
-					print ("loss: {} QMean: {} e: {}".format(l[0],l[1],HP['e']))
-					self.model.writeWeightsInFile(
-						"Reinforcement-Learning/extra/{}/weights/model.ckpt".format(self.GAME_NAME))
 				if(HP['e']>=0.2):
 					if(self.total_steps%HP['reducing_e_freq']==0):
 						HP['e'] -= 0.1
-			print ("Episode {} finished, Score: {}".format(episode,t))
+
+			if(episode%50==0):
+				total = 0.0
+				print ('e',HP['e'])
+				self.model.writer.add_summary(summary, episode)
+				self.model.writeWeightsInFile(
+					"Reinforcement-Learning/extra/{}/weights/model.ckpt".format(self.GAME_NAME))
+			print ("Episode {} finished".format(episode))
 
 
 

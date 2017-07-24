@@ -25,6 +25,10 @@ class CNN(modelBase):
 		self.Q = tf.placeholder(shape=[None],dtype=tf.float32)
 		self.targetActionMask = tf.placeholder(shape=[None, self.output_size], dtype=tf.float32)
 		self.prioritizedWeights = tf.placeholder(shape=[None], dtype=tf.float32)
+		self.reward = tf.placeholder(shape=(),dtype=tf.float32, name="reward")
+		tf.summary.scalar("reward", self.reward)
+
+
 
 
 
@@ -34,10 +38,10 @@ class CNN(modelBase):
 		self.TDerror = temp -  self.Q
 		#Huber function
 		if(HP['error_clip']==1):
-			self.loss = tf.reduce_mean(tf.where(tf.abs(self.TDerror)<0.5, tf.square(self.TDerror), tf.abs(self.TDerror)))
+			self.loss = tf.reduce_mean(tf.where(tf.abs(self.TDerror)<1.0, 0.5*tf.square(self.TDerror), tf.abs(self.TDerror)-0.5))
 		else:
 			self.loss = tf.reduce_mean(tf.square(self.TDerror))
-
+		tf.summary.scalar("loss", self.loss)
 		for weightRegul in self.weights[0::2]:
 			self.loss += (1/2)*HP['regularization_factor'] * tf.reduce_sum(tf.square(weightRegul))
 		trainer = tf.train.RMSPropOptimizer(
@@ -78,18 +82,19 @@ class CNN(modelBase):
 		self.Qprime = tf.layers.dense(inputs=dense, units=self.output_size)
 		self.P = tf.argmax(self.Qprime, 1)
 		self.Qmean = tf.reduce_mean(self.Qprime)
+		tf.summary.scalar("Qmean", self.Qmean)
 		tfGraph = tf.get_default_graph()
 		k = lambda x: tfGraph.get_tensor_by_name('c{}/kernel:0'.format(x))
 		b = lambda x: tfGraph.get_tensor_by_name('c{}/bias:0'.format(x))
 		self.weights = list(chain.from_iterable((k(x), b(x)) for x in range(1,4)))
 
 
-	def executeStep(self, input_val, output, target_action_mask, weights = np.array([HP['mini_batch_size']]).fill(1)):
-
-		_, loss, Qmean_val, TDerror_val = self.sess.run([self.step, self.loss, self.Qmean, self.TDerror],
+	def executeStep(self, input_val, output, target_action_mask, total_reward, weights = np.ones(HP['mini_batch_size'])):
+		_, summary, TDerror_val = self.sess.run([self.step, self.summary, self.TDerror],
 			feed_dict = {
 				self.X: input_val,
 			 	self.Q: output,
 				self.targetActionMask: target_action_mask,
-				self.prioritizedWeights: weights})
-		return loss, Qmean_val, TDerror_val
+				self.prioritizedWeights: weights,
+				self.reward: total_reward})
+		return summary, TDerror_val

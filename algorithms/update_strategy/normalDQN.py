@@ -2,13 +2,8 @@ import numpy as np
 
 
 class normalStrategy:
-    def execute(self, model, exp, targetWeights):
+    def execute(self, model, states, targetWeights):
         #target weights isn't used
-        feed_dict = { model.X: [exp['next_state']] }
+        feed_dict = { model.X: states }
         Qvalues = model.getQValues(feed_dict)
-        maxQ = np.max(Qvalues)
-        if(exp['done']==True):
-            updatedValue = exp['reward']
-        else:
-            updatedValue = exp['reward'] + HP['y'] * maxQ
-        return updatedValue
+        return np.max(Qvalues, axis = 1)

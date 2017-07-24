@@ -30,9 +30,10 @@ class PriorizedStrategy:
 		weights /= max(weights)
 		X_val = np.array(X_val)
 		Y_val = np.array(Y_val)
-		*returnValues, TDerror  = model.executeStep(X_val, Y_val, target_action_mask, weights)
+
+		summary, TDerror  = model.executeStep(X_val, Y_val, target_action_mask, weights)
 		#TODO vectorize this function
 		for index, error in enumerate(TDerror):
 			e = lambda err: (abs(err) + HP['epsilon_prio'])**HP['alpha']
 			self.memory.update(indexes[index], e(error))
-		return returnValues
+		return summary

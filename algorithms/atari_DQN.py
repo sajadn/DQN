@@ -20,6 +20,7 @@ class DQN(DQNBase):
         cumReward = 0
         cumDone = False
         states = []
+        i = 0
         for i in range(HP['stacked_frame_size']):
             s1, reward, done, _ = self.env.step(action)
             states.append(s1)
@@ -28,10 +29,11 @@ class DQN(DQNBase):
             if(cumDone == True):
                 for j in range(i+1, HP['stacked_frame_size']):
                     states.append(s1)
-                    break
+                break
+        storeReward = cumReward if (cumDone==False)else(cumReward-(HP['stacked_frame_size']-i))
         newState = self.model.preprocess(states)
         return {'state': state,
                'action': action,
-               'reward': cumReward,
+               'reward': storeReward,
                'next_state': newState,
                'done': cumDone }
