@@ -18,13 +18,13 @@ class DQNBaseModel(modelBase):
 		self.reward = tf.placeholder(dtype=tf.float32, name="reward")
 		tf.summary.scalar("reward", self.reward)
 
-	def executeStep(self, input_val, output, target_action_mask, total_reward, weights = np.ones(HP['mini_batch_size'])):
+	def executeStep(self, input_val, output, target_action_mask, total_reward, prio_weights = np.ones(HP['mini_batch_size'])):
 		_, summary, TDerror_val = self.sess.run([self.step, self.summary, self.TDerror],
 			feed_dict = {
 				self.X: input_val,
 			 	self.Q: output,
 				self.targetActionMask: target_action_mask,
-				self.prioritizedWeights: weights,
+				self.prioritizedWeights: prio_weights,
 				self.reward: total_reward})
 		return summary, TDerror_val
 

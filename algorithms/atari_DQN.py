@@ -8,31 +8,20 @@ from ..algorithms.DQNBase import DQNBase
 class DQN(DQNBase):
     def initialState(self):
         states = []
-        action = self.env.action_space.sample()
         obs = self.env.reset()
-        states.append(obs)
-        for _ in range(HP['stacked_frame_size']-1):
-            obs, reward, done, info = self.env.step(action)
+        obs = self.model.preprocess(obs)
+        for _ in range(HP['stacked_frame_size']):
             states.append(obs)
-        return self.model.preprocess(states)
+            #TODO add preprocess in stack_frames
+        return self.model.stack_frames(states)
 
     def executeAction(self, action, state):
-        cumReward = 0
-        cumDone = False
-        states = []
-        i = 0
-        for i in range(HP['stacked_frame_size']):
-            s1, reward, done, _ = self.env.step(action)
-            states.append(s1)
-            cumReward+= reward
-            cumDone = cumDone or done
-            if(cumDone == True):
-                for j in range(i+1, HP['stacked_frame_size']):
-                    states.append(s1)
-                break
-        newState = self.model.preprocess(states)
+        s1, reward, done, _ = self.env.step(action)
+        newObservation = self.model.preprocess(s1)
+        newState = state[:, :, 1:]
+        newState = np.dstack((newState, newObservation))
         return {'state': state,
                'action': action,
-               'reward': cumReward,
+               'reward': reward,
                'next_state': newState,
-               'done': cumDone }
+               'done': done }

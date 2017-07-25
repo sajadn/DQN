@@ -3,8 +3,8 @@ import numpy as np
 import random
 import tensorflow as tf
 from ..parameters import HP
-import matplotlib.pyplot as plt
-from scipy.misc import imresize
+# import matplotlib.pyplot as plt
+from scipy.misc import imresize, imsave
 from itertools import chain
 from ..models.modelBase import modelBase
 from ..models.DQNBaseModel import DQNBaseModel
@@ -13,13 +13,14 @@ from ..models.DQNBaseModel import DQNBaseModel
 
 WIDTH = 84
 class CNN(DQNBaseModel):
-	def convertToGrayScale(self, frame):
-		data = imresize(frame, (WIDTH, WIDTH, 3))
-		return np.dot(data, [0.2126, 0.7152, 0.0722])
 
-	def preprocess(self, input_val):
-		f = np.vectorize(self.convertToGrayScale,signature='(n,m,k)->(h,i)')
-		return np.dstack(tuple(f(input_val)))
+	def preprocess(self, frame):
+		#TODO change order of these two lines
+		data = np.dot(frame, [0.2126, 0.7152, 0.0722]).astype(np.uint8)
+		return imresize(data, (WIDTH, WIDTH, 3))
+
+	def stack_frames(self, frames):
+		return np.dstack(tuple(frames))
 
 	def defineInput(self):
 	 	return tf.placeholder(shape=[None, WIDTH, WIDTH, HP['stacked_frame_size']],dtype=tf.float32)
