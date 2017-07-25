@@ -20,6 +20,7 @@ class DQNBase(algorithmBase):
 		self.update_policy = update_policy
 		self.GAME_NAME = self.env.env.spec.id
 		self.total_steps = 0
+		self.epsilon_decay = (HP['ep_start']-HP['ep_end'])/HP['ep_reduction_steps']
 
 	@abc.abstractmethod
 	def initialState(self):
@@ -60,16 +61,16 @@ class DQNBase(algorithmBase):
 				total += exp['reward']
 				summary = self.memory_policy.experienceReplay(
 							self.model, self.target_weights, self.update_policy, total/50)
+				if(HP['ep_start']>=(HP['ep_end']-0.00000001)):
+					HP['ep_start'] -= self.epsilon_decay
 				if(exp['done'] == True):
 					break
-				if(HP['e']>=0.2):
-					if(self.total_steps%HP['reducing_e_freq']==0):
-						HP['e'] -= 0.1
+
 
 			if(episode%50==0):
 				print ('average (50E):', total/50)
 				total = 0.0
-				print ('e',HP['e'])
+				print ('e',HP['ep_start'])
 				self.model.writer.add_summary(summary, episode)
 				self.model.writeWeightsInFile(
 					"Reinforcement-Learning/extra/{}/weights/model.ckpt".format(self.GAME_NAME))
@@ -79,7 +80,7 @@ class DQNBase(algorithmBase):
 
 	#e-greddy
 	def selectAction(self, state):
-		if np.random.rand(1) < HP['e']:
+		if np.random.rand(1) < HP['ep_start']:
 			action = self.env.action_space.sample()
 		else:
 			action = self.model.predictAction([state])[0]
