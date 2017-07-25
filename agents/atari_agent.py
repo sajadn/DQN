@@ -10,7 +10,7 @@ from ..algorithms.update_strategy.targetNewtork import targetNetworkStrategy
 from ..algorithms.memory_strategy.normalStrategy import NormalStrategy
 import sys
 
-env = gym.make('Breakout-v0')
+env = gym.make(str(sys.argv[2]))
 ann = CNN(env)
 upd = targetNetworkStrategy()
 mem = NormalStrategy()

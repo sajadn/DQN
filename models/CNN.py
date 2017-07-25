@@ -23,7 +23,7 @@ class CNN(DQNBaseModel):
 		return np.dstack(tuple(frames))
 
 	def defineInput(self):
-	 	return tf.placeholder(shape=[None, WIDTH, WIDTH, HP['stacked_frame_size']],dtype=tf.float32)
+	 	return tf.placeholder(shape=[None, WIDTH, WIDTH, HP['stacked_frame_size']],dtype=tf.float32, name="X")
 
 	def defineTrainer(self):
 		return tf.train.RMSPropOptimizer(

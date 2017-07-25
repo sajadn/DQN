@@ -8,7 +8,6 @@ from ..algorithms.cartPole_DQN import DQN
 from ..models.FNN import FNN
 from ..algorithms.update_strategy.targetNewtork import targetNetworkStrategy
 from ..algorithms.memory_strategy.normalStrategy import NormalStrategy
-
 import sys
 
 env = gym.make('CartPole-v0')
