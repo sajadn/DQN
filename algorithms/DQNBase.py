@@ -96,7 +96,7 @@ class DQNBase(algorithmBase):
 			state = self.initialState()
 			total = 0
 			while True:
-				self.env.render()
+				# self.env.render()
 				action = self.model.predictAction([state])
 				exp = self.executeAction(action[0], state)
 				state = exp['next_state']
