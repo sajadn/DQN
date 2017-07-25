@@ -39,31 +39,31 @@ class CNN(DQNBaseModel):
 				filters=32,
 				strides=[4, 4],
 				kernel_size=[8, 8],
-				name="c1",
+				name="L1",
 				activation=tf.nn.relu)
 
 		conv2 = tf.layers.conv2d(
 				inputs= conv1,
 				filters=64,
 				strides=[2, 2],
-				name="c2",
+				name="L2",
 				kernel_size=[4, 4],
 				activation=tf.nn.relu)
 
 		conv3 = tf.layers.conv2d(
 				inputs=conv2,
 				filters=64,
-				name="c3",
+				name="L3",
 				kernel_size=[3, 3],
 				activation=tf.nn.relu)
 
 		flatten = tf.reshape(conv3, [-1, 7 * 7 * 64])
-		dense = tf.layers.dense(inputs=flatten, units=512, activation=tf.nn.relu, name="FC1")
-		self.Qprime = tf.layers.dense(inputs=dense, units=self.output_size, name="FC2")
+		dense = tf.layers.dense(inputs=flatten, units=512, activation=tf.nn.relu, name="L4")
+		self.Qprime = tf.layers.dense(inputs=dense, units=self.output_size, name="L5")
 		self.P = tf.argmax(self.Qprime, 1)
 		self.Qmean = tf.reduce_mean(self.Qprime)
 		tf.summary.scalar("Qmean", self.Qmean)
 		tfGraph = tf.get_default_graph()
-		k = lambda x: tfGraph.get_tensor_by_name('c{}/kernel:0'.format(x))
-		b = lambda x: tfGraph.get_tensor_by_name('c{}/bias:0'.format(x))
-		self.weights = list(chain.from_iterable((k(x), b(x)) for x in range(1,4)))
+		k = lambda x: tfGraph.get_tensor_by_name('L{}/kernel:0'.format(x))
+		b = lambda x: tfGraph.get_tensor_by_name('L{}/bias:0'.format(x))
+		self.weights = list(chain.from_iterable((k(x), b(x)) for x in range(1,6)))
