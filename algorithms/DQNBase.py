@@ -50,7 +50,7 @@ class DQNBase(algorithmBase):
 		total = 0.0
 		for episode in range(1, HP['num_episodes']):
 			state = self.initialState()
-			while True:
+			for _ in range(800):
 				if(self.total_steps%HP['target_update'] == 0):
 					self.target_weights = self.model.getWeights()
 				action = self.selectAction(state)
@@ -95,10 +95,14 @@ class DQNBase(algorithmBase):
 		for p in range(100):
 			state = self.initialState()
 			total = 0
-			while True:
-				# self.env.render()
-				action = self.model.predictAction([state])
-				exp = self.executeAction(action[0], state)
+			for _ in range(400):
+				#self.env.render()
+				a = np.random.rand(1)
+				if(a<0.05):
+					action = self.env.action_space.sample()
+				else:
+					action = self.model.predictAction([state])[0]
+				exp = self.executeAction(action, state)
 				state = exp['next_state']
 				total+= exp['reward']
 				if exp['done'] == True:
