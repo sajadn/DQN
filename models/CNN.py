@@ -19,9 +19,6 @@ class CNN(DQNBaseModel):
 		data = np.dot(frame, [0.2126, 0.7152, 0.0722]).astype(np.uint8)
 		return imresize(data, (WIDTH, WIDTH, 3))
 
-	def stack_frames(self, frames):
-		return np.dstack(tuple(frames))
-
 	def defineInput(self):
 	 	return tf.placeholder(shape=[None, WIDTH, WIDTH, HP['stacked_frame_size']],dtype=tf.float32, name="X")
 
@@ -33,15 +30,12 @@ class CNN(DQNBaseModel):
             		momentum=0.95)
 
 	def defineNNArchitecture(self):
-		#TODO add initiallization
-		initializer = tf.truncated_normal_initializer(0, 0.02)
 		conv1 = tf.layers.conv2d(
 				inputs= self.X,
 				filters=32,
 				strides=[4, 4],
 				kernel_size=[8, 8],
 				name="L1",
-				kernel_initializer= initializer,
 				activation=tf.nn.relu)
 
 		conv2 = tf.layers.conv2d(
@@ -50,7 +44,6 @@ class CNN(DQNBaseModel):
 				strides=[2, 2],
 				name="L2",
 				kernel_size=[4, 4],
-				kernel_initializer= initializer,
 				activation=tf.nn.relu)
 
 		conv3 = tf.layers.conv2d(
@@ -58,14 +51,13 @@ class CNN(DQNBaseModel):
 				filters=64,
 				name="L3",
 				kernel_size=[3, 3],
-				kernel_initializer= initializer,
 				activation=tf.nn.relu)
 
 		flatten = tf.reshape(conv3, [-1, 7 * 7 * 64])
-		dense = tf.layers.dense(inputs=flatten, units=512, kernel_initializer=initializer, activation=tf.nn.relu, name="L4")
-		self.Qprime = tf.layers.dense(inputs=dense, units=self.output_size, kernel_initializer=initializer, name="L5")
+		dense = tf.layers.dense(inputs=flatten, units=512, activation=tf.nn.relu, name="L4")
+		self.Qprime = tf.layers.dense(inputs=dense, units=self.output_size, name="L5")
 		self.P = tf.argmax(self.Qprime, 1)
-		self.Qmean = tf.reduce_mean(self.Qprime)
+		self.Qmean = tf.reduce_mean(tf.reduce_max(self.Qprime,axis = 1))
 		tf.summary.scalar("Qmean", self.Qmean)
 		tfGraph = tf.get_default_graph()
 		k = lambda x: tfGraph.get_tensor_by_name('L{}/kernel:0'.format(x))

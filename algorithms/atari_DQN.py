@@ -12,8 +12,7 @@ class DQN(DQNBase):
         obs = self.model.preprocess(obs)
         for _ in range(HP['stacked_frame_size']):
             states.append(obs)
-            #TODO add preprocess in stack_frames
-        return self.model.stack_frames(states)
+        return np.dstack(tuple(states))
 
     def executeAction(self, action, state):
         s1, reward, done, _ = self.env.step(action)
