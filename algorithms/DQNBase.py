@@ -11,6 +11,7 @@ import abc
 
 #DQN algorithm without error clipping
 #TODO newtork target strategy typo
+#TODO up to 30 no-op in the begining of each episode is required
 class DQNBase(algorithmBase):
 
 	def __init__(self, env, model, update_policy, memory_policy):
@@ -30,7 +31,7 @@ class DQNBase(algorithmBase):
 		""
 
 	def fillERMemory(self):
-		for i in range(HP['initial_experience_sizes']):
+		while True:
 			state = self.initialState()
 			total = 0
 			while True:
@@ -40,8 +41,10 @@ class DQNBase(algorithmBase):
 				state = exp['next_state']
 				total += exp['reward']
 				if exp['done']:
-					print("Episode {} finished, Score: {}".format(i,total))
+					print("Episode finished")
 					break
+			if(self.memory_policy.getLength() >= (HP['initial_experience_sizes'])):
+				break;
 		print ("Random Agent Finished")
 
 	def train(self):
@@ -50,7 +53,7 @@ class DQNBase(algorithmBase):
 		total = 0.0
 		for episode in range(1, HP['num_episodes']):
 			state = self.initialState()
-			for _ in range(800):
+			while True:
 				if(self.total_steps%HP['target_update'] == 0):
 					self.target_weights = self.model.getWeights()
 				action = self.selectAction(state)

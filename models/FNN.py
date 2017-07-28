@@ -14,7 +14,7 @@ class FNN(DQNBaseModel):
 
 	def defineInput(self):
 		return tf.placeholder(shape=[None, self.input_size],dtype=tf.float32, name="X")
-		
+
 	def defineNNArchitecture(self):
 		with tf.name_scope("layer1"):
 			W1 = tf.Variable(tf.random_uniform([self.input_size, 128],0,0.01), name = "W")
@@ -37,7 +37,7 @@ class FNN(DQNBaseModel):
 			tf.summary.histogram("biases", b3)
 			self.Qprime = tf.add(tf.matmul(Z2, W3), b3, name="output")
 		self.P = tf.argmax(self.Qprime, 1, name="prectedAction")
-		self.Qmean = tf.reduce_mean(self.Qprime)
+		self.Qmean = tf.reduce_mean(f.reduce_max(self.Qprime, axis = 1))
 		tf.summary.scalar("Qmean", self.Qmean)
 		self.weights = [W1, b1, W2, b2, W3, b3]
 

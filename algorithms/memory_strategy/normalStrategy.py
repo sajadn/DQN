@@ -9,6 +9,9 @@ class NormalStrategy:
 		self.memory = deque()
 		self.noram = normalStrategy()
 
+	def getLength(self):
+		return len(self.memory)
+
 	def selectMiniBatch(self):
 		rcount = min(len(self.memory), HP['mini_batch_size'])
 		return random.sample(self.memory, rcount)
