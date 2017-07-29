@@ -98,10 +98,10 @@ class DQNBase(algorithmBase):
 		for p in range(100):
 			state = self.initialState()
 			total = 0
-			for _ in range(400):
-				#self.env.render()
+			while True:
+				self.env.render()
 				a = np.random.rand(1)
-				if(a<0.05):
+				if(a<0.01):
 					action = self.env.action_space.sample()
 				else:
 					action = self.model.predictAction([state])[0]
