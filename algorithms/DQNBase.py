@@ -53,7 +53,7 @@ class DQNBase(algorithmBase):
 		total = 0.0
 		for episode in range(1, HP['num_episodes']):
 			state = self.initialState()
-			for in range(random.randint(0,30))
+			for _ in range(random.randint(0,30)):
 				state = self.executeAction(0, state)
 			for _ in range(1200):
 				if(self.total_steps%HP['target_update'] == 0):
@@ -78,7 +78,7 @@ class DQNBase(algorithmBase):
 				print ('e',HP['ep_start'])
 				self.model.writer.add_summary(summary, episode)
 				self.model.writeWeightsInFile(
-					"Reinforcement-Learning/extra/{}/weights/model.ckpt".format(self.GAME_NAME))
+					"Reinforcement-Learning/extra/{}/weights3/model.ckpt".format(self.GAME_NAME))
 			print ("Episode {} finished".format(episode))
 
 

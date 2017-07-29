@@ -8,7 +8,7 @@ import os
 #TODO search about how to force subclasses to have concrete fields
 class modelBase(abc.ABC):
     def __init__(self, env):
-        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+        os.environ["CUDA_VISIBLE_DEVICES"] = "1"
         self.sess = tf.Session()
         self.input_size = env.observation_space.shape[0]
         self.output_size = env.action_space.n
@@ -18,7 +18,7 @@ class modelBase(abc.ABC):
         init = tf.global_variables_initializer()
         self.sess.run(init)
         self.saver = tf.train.Saver()
-        self.writer = tf.summary.FileWriter("Reinforcement-Learning/extra/{}/tensorboard/18".format(env.env.spec.id))
+        self.writer = tf.summary.FileWriter("Reinforcement-Learning/extra/{}/tensorboard/21".format(env.env.spec.id))
         self.writer.add_graph(self.sess.graph)
         self.summary = tf.summary.merge_all()
 
