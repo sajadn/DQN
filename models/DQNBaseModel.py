@@ -38,9 +38,9 @@ class DQNBaseModel(modelBase):
 			self.TDerror = temp -  self.Q
 			#Huber function
 			if(HP['error_clip']==1):
-				self.loss = tf.reduce_mean(tf.where(tf.abs(self.TDerror)<1.0, 0.5*tf.square(self.TDerror), tf.abs(self.TDerror)-0.5))
+				self.loss = tf.reduce_sum(tf.where(tf.abs(self.TDerror)<1.0, 0.5*tf.square(self.TDerror), tf.abs(self.TDerror)-0.5))
 			else:
-				self.loss = tf.reduce_mean(tf.square(self.TDerror))
+				self.loss = tf.reduce_sum(tf.square(self.TDerror))
 			tf.summary.scalar("loss", self.loss)
 			for weightRegul in self.weights[0::2]:
 				self.loss += (1/2)*HP['regularization_factor'] * tf.reduce_sum(tf.square(weightRegul))
