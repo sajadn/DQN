@@ -54,7 +54,7 @@ class DQNBase(algorithmBase):
 		for episode in range(1, HP['num_episodes']):
 			state = self.initialState()
 			for _ in range(random.randint(0,30)):
-				state = self.executeAction(0, state)
+				state = self.executeAction(0, state)['state']
 			for _ in range(1200):
 				if(self.total_steps%HP['target_update'] == 0):
 					self.target_weights = self.model.getWeights()
