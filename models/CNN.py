@@ -17,7 +17,7 @@ class CNN(DQNBaseModel):
 	def preprocess(self, frame):
 		#TODO change order of these two lines
 		data = np.dot(frame, [0.2126, 0.7152, 0.0722]).astype(np.uint8)
-		return imresize(data, (WIDTH, WIDTH, 3))
+		return imresize(data, (WIDTH, WIDTH))
 
 	def defineInput(self):
 	 	return tf.placeholder(shape=[None, WIDTH, WIDTH, HP['stacked_frame_size']],dtype=tf.float32, name="X")
@@ -58,7 +58,7 @@ class CNN(DQNBaseModel):
 		self.Qprime = tf.layers.dense(inputs=dense, units=self.output_size, name="L5")
 		self.P = tf.argmax(self.Qprime, 1)
 		self.Qmean = tf.reduce_mean(tf.reduce_max(self.Qprime,axis = 1))
-		tf.summary.scalar("Qmean", self.Qmean)
+		self.QmeanSummary = tf.summary.scalar("Qmean", self.Qmean)
 		tfGraph = tf.get_default_graph()
 		k = lambda x: tfGraph.get_tensor_by_name('L{}/kernel:0'.format(x))
 		b = lambda x: tfGraph.get_tensor_by_name('L{}/bias:0'.format(x))

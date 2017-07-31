@@ -47,15 +47,20 @@ class DQNBase(algorithmBase):
 				break;
 		print ("Random Agent Finished")
 
+	def getHeldoutSet(self):
+		temp = self.memory_policy.selectMiniBatch()
+		return [t['state'] for t in temp]
+
 	def train(self):
 		self.fillERMemory()
+		self.heldout_set = self.getHeldoutSet()
 		self.total_steps = 0
 		total = 0.0
 		for episode in range(1, HP['num_episodes']):
 			state = self.initialState()
 			# for _ in range(random.randint(0,30)):
 			# 	state = self.executeAction(0, state)['state']
-			for _ in range(1200):
+			for _ in range(400):
 				if(self.total_steps%HP['target_update'] == 0):
 					self.target_weights = self.model.getWeights()
 				action = self.selectAction(state)
@@ -64,8 +69,7 @@ class DQNBase(algorithmBase):
 				self.total_steps += 1
 				state = exp['next_state']
 				total += exp['reward']
-				summary = self.memory_policy.experienceReplay(
-							self.model, self.target_weights, self.update_policy, total/50)
+				summary = self.memory_policy.experienceReplay(self.model, self.target_weights,self.update_policy, total/50)
 				if(HP['ep_start']>=HP['ep_end']):
 					HP['ep_start'] -= self.epsilon_decay
 				if(exp['done'] == True):
@@ -76,7 +80,10 @@ class DQNBase(algorithmBase):
 				print ('average (50E):', total/50)
 				total = 0.0
 				print ('e',HP['ep_start'])
-				self.model.writer.add_summary(summary, episode)
+				for s in summary:
+					self.model.writer.add_summary(s, episode)
+				qmeans = self.model.sess.run(self.model.QmeanSummary, feed_dict={self.model.X: self.heldout_set})
+				self.model.writer.add_summary(qmeans, episode)
 				self.model.writeWeightsInFile(
 					"Reinforcement-Learning/extra/{}/weights/model.ckpt".format(self.GAME_NAME))
 			print ("Episode {} finished".format(episode))
@@ -101,7 +108,7 @@ class DQNBase(algorithmBase):
 			state = self.initialState()
 			total = 0
 			while True:
-				# self.env.render()
+				#self.env.render()
 				a = np.random.rand(1)
 				if(a<0.01):
 					action = self.env.action_space.sample()
