@@ -14,7 +14,7 @@ from tensorflow.contrib.layers.python.layers import initializers
 
 
 
-WIDTH = 84
+WIDTH = 42
 class CNN(DQNBaseModel):
 
 	def preprocess(self, frame):

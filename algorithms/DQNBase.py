@@ -69,7 +69,8 @@ class DQNBase(algorithmBase):
 				self.total_steps += 1
 				state = exp['next_state']
 				total += exp['reward']
-				summary = self.memory_policy.experienceReplay(self.model, self.target_weights,self.update_policy, total/50)
+				if(self.total_steps%HP['train_freq']==0):
+					summary = self.memory_policy.experienceReplay(self.model, self.target_weights,self.update_policy, total/50)
 				if(HP['ep_start']>=HP['ep_end']):
 					HP['ep_start'] -= self.epsilon_decay
 				if(exp['done'] == True):
@@ -107,7 +108,7 @@ class DQNBase(algorithmBase):
 		for p in range(100):
 			state = self.initialState()
 			total = 0
-			while True:
+			for _ in range(400):
 				#self.env.render()
 				a = np.random.rand(1)
 				if(a<0.01):
