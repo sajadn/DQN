@@ -15,13 +15,17 @@ class DQN(DQNBase):
         return np.dstack(tuple(states))
 
     def executeAction(self, action, state):
+        cumReward = 0
         for _ in range(HP['frame_skipping']):
             s1, reward, done, _ = self.env.step(action)
+            cumReward += reward
+            if done==True:
+                break
         newObservation = self.model.preprocess(s1)
         newState = state[:, :, 1:]
         newState = np.dstack((newState, newObservation))
         return {'state': state,
                'action': action,
-               'reward': reward,
+               'reward': cumReward,
                'next_state': newState,
                'done': done }

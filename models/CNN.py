@@ -14,7 +14,7 @@ from tensorflow.contrib.layers.python.layers import initializers
 
 
 
-WIDTH = 42
+WIDTH = 84
 class CNN(DQNBaseModel):
 
 	def preprocess(self, frame):
@@ -25,11 +25,11 @@ class CNN(DQNBaseModel):
 	def defineInput(self):
 	 	return tf.placeholder(shape=[None, WIDTH, WIDTH, HP['stacked_frame_size']],dtype=tf.float32, name="X")
 
+#TODO exponensial decay
 	def defineTrainer(self):
 		return tf.train.RMSPropOptimizer(
             		learning_rate = HP['learning_rate'],
            			epsilon=0.01,
-            		decay=0.95,
             		momentum=0.95)
 
 	def defineNNArchitecture(self):
@@ -50,7 +50,7 @@ class CNN(DQNBaseModel):
 		with tf.variable_scope(name):
 			stride = [1, stride[0], stride[1], 1]
 			kernel_shape = [kernel_size[0], kernel_size[1], x.get_shape()[-1], output_dim]
-			w = tf.get_variable('w', kernel_shape, tf.float32, initializer=tf.contrib.layers.xavier_initializer())
+			w = tf.get_variable('w', kernel_shape, tf.float32, initializer=tf.truncated_normal_initializer(0, 0.02))
 			conv = tf.nn.conv2d(x, w, stride, "VALID", data_format=data_format)
 			b = tf.get_variable('biases', [output_dim], initializer=tf.constant_initializer(0.0))
 			out = tf.nn.bias_add(conv, b, data_format)
@@ -60,7 +60,7 @@ class CNN(DQNBaseModel):
 	def linear(self, input_, output_size, activation_fn=None, name='linear'):
 		shape = input_.get_shape().as_list()
 		with tf.variable_scope(name):
-			w = tf.get_variable('W', [shape[1], output_size], tf.float32, tf.random_normal_initializer(stddev=0.02))
+			w = tf.get_variable('W', [shape[1], output_size], tf.float32, tf.truncated_normal_initializer(0, 0.02))
 			b = tf.get_variable('B', [output_size], initializer=tf.constant_initializer(0.0))
 			out = tf.nn.bias_add(tf.matmul(input_, w), b)
 		if activation_fn != None:

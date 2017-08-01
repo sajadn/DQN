@@ -75,11 +75,15 @@ class DQNBase(algorithmBase):
 					HP['ep_start'] -= self.epsilon_decay
 				if(exp['done'] == True):
 					break
+				if(self.total_steps>=HP['max_step']):
+					print ("Train Finished")
+					return
 
 
 			if(episode%50==0):
 				print ('average (50E):', total/50)
 				total = 0.0
+				print ('step', self.total_steps)
 				print ('e',HP['ep_start'])
 				for s in summary:
 					self.model.writer.add_summary(s, episode)
