@@ -31,6 +31,6 @@ class DQN(DQNBase):
         newState = np.dstack((newState, newObservation))
         return {'state': state,
                'action': action,
-               'reward': reward,
+               'reward': cumReward,
                'next_state': newState,
                'done': done }
