@@ -90,7 +90,7 @@ class DQNBase(algorithmBase):
 				self.model.writer.add_summary(lossSummary, episode)
 				qmeans = self.model.sess.run(self.model.QmeanSummary, feed_dict={self.model.X: self.heldout_set})
 				self.model.writer.add_summary(qmeans, episode)
-				self.model.writer.add_summary(self.model.sess.run(self.reward_summ, feed_dict={self.reward_tensor: total/50}))
+				self.model.writer.add_summary(self.model.sess.run(self.reward_summ, feed_dict={self.reward_tensor: total/50}), episode)
 				self.model.writeWeightsInFile(
 					"Reinforcement-Learning/extra/{}/weights/{}/model.ckpt".format(self.GAME_NAME, HP['folder_number']))
 				total = 0.0

@@ -9,6 +9,9 @@ from ..models.CNN import CNN
 from ..algorithms.update_strategy.targetNetwork import targetNetworkStrategy
 from ..algorithms.memory_strategy.normalStrategy import NormalStrategy
 import sys
+# from gym.envs.registration import registry, register
+
+
 
 env = gym.make(str(sys.argv[2]))
 ann = CNN(env)
