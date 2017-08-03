@@ -14,7 +14,7 @@ class DQN(DQNBase):
 
     def executeAction(self, action, state):
         cumReward = 0
-        pf = None
+        pf = []
         for i in range(HP['frame_skipping']):
             s1, reward, done, _ = self.env.step(action)
             clip = lambda r: r if r==0 else r/abs(r)
@@ -24,7 +24,7 @@ class DQN(DQNBase):
             if(i != (HP['frame_skipping']-1)):
                 pf = s1
 
-        if(pf != None):
+        if(len(pf) != 0):
             s1 = np.maximum(s1, pf)
         newObservation = self.model.preprocess(s1)
         newState = state[:, :, 1:]
