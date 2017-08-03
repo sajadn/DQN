@@ -21,35 +21,23 @@ class NormalStrategy:
 			self.memory.popleft()
 		self.memory.append(exp)
 
-	def experienceReplay(self, model, target_weights, update_policy, total_reward):
+	def experienceReplay(self, model, target_weights, update_policy):
 		sexperiences = self.selectMiniBatch()
 		X_val = []
 		Y_val = []
-		# Y_fuck = []
 		next_states = []
 		target_action_mask = np.zeros((len(sexperiences), model.output_size), dtype=int)
 		for index, exp in enumerate(sexperiences):
 			X_val.append(exp['state'])
 			target_action_mask[index][exp['action']] = 1
 			next_states.append(exp['next_state'])
-		temps = update_policy.execute(model, next_states, target_weights)
-		# fucks = self.noram.execute(model, next_states, target_weights)
+		nextStatesValues = update_policy.execute(model, next_states, target_weights)
 		for index, exp in enumerate(sexperiences):
 			if(exp['done']==True):
 				Y_val.append(exp['reward'])
-				# Y_fuck.append(exp['reward'])
 			else:
-				Y_val.append(exp['reward'] + temps[index]*HP['y'])
-				# Y_fuck.append(exp['reward']+fucks[index])
-		# feed_dict = { model.X: X_val }
-		# XQvalues = model.getQValues(feed_dict)
-		# for index in range(len(XQvalues)):
-		# 	print ('current', XQvalues[index][exp['action']])
-		# 	print ('next', Y_val[index])
-		# 	print ('fuck next', Y_fuck[index])
-		# 	print ('**')
+				Y_val.append(exp['reward'] + nextStatesValues[index]*HP['y'])
 		X_val = np.array(X_val)
 		Y_val = np.array(Y_val)
-		summary, TDerror = model.executeStep(X_val, Y_val, target_action_mask, total_reward)
-		# print ("************************ experience replay finished *************************")
+		summary, TDerror = model.executeStep(X_val, Y_val, target_action_mask)
 		return summary

@@ -3,8 +3,6 @@ import random
 from ..parameters import HP
 from ..algorithms.DQNBase import DQNBase
 
-#TODO seperate executing action from storing it
-#TODO target nETWORK
 class DQN(DQNBase):
     def initialState(self):
         states = []
@@ -15,17 +13,13 @@ class DQN(DQNBase):
         return np.dstack(tuple(states))
 
     def executeAction(self, action, state):
-        cumReward = 0
-        for _ in range(HP['frame_skipping']):
-            s1, reward, done, _ = self.env.step(action)
-            cumReward += reward
-            if done==True:
-                break
+        s1, reward, done, _ = self.env.step(action)
+        reward = reward if reward==0 else reward/abs(reward)
         newObservation = self.model.preprocess(s1)
         newState = state[:, :, 1:]
         newState = np.dstack((newState, newObservation))
         return {'state': state,
                'action': action,
-               'reward': cumReward,
+               'reward': reward,
                'next_state': newState,
                'done': done }

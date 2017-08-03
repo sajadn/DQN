@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from collections import deque
 from ..algorithms.atari_DQN import DQN
 from ..models.CNN import CNN
-from ..algorithms.update_strategy.targetNewtork import targetNetworkStrategy
+from ..algorithms.update_strategy.targetNetwork import targetNetworkStrategy
 from ..algorithms.memory_strategy.normalStrategy import NormalStrategy
 import sys
 

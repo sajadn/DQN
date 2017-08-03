@@ -15,18 +15,15 @@ class DQNBaseModel(modelBase):
 		self.Q = tf.placeholder(shape=[None],dtype=tf.float32, name="true_values")
 		self.targetActionMask = tf.placeholder(shape=[None, self.output_size],dtype=tf.float32, name="action_mask")
 		self.prioritizedWeights = tf.placeholder(shape=[None], dtype=tf.float32, name="prioritizedWeights")
-		self.reward = tf.placeholder(dtype=tf.float32, name="reward")
-		self.rewardSummary = tf.summary.scalar("reward", self.reward)
 
-	def executeStep(self, input_val, output, target_action_mask, total_reward, prio_weights = np.ones(HP['mini_batch_size'])):
-		_, rs,ls, TDerror_val = self.sess.run([self.step, self.rewardSummary, self.lossSummary, self.TDerror],
+	def executeStep(self, input_val, output, target_action_mask, prio_weights = np.ones(HP['mini_batch_size'])):
+		_, ls, TDerror_val = self.sess.run([self.step, self.lossSummary, self.TDerror],
 			feed_dict = {
 				self.X: input_val,
 			 	self.Q: output,
 				self.targetActionMask: target_action_mask,
-				self.prioritizedWeights: prio_weights,
-				self.reward: total_reward})
-		return [rs, ls], TDerror_val
+				self.prioritizedWeights: prio_weights})
+		return ls, TDerror_val
 
 	@abc.abstractmethod
 	def defineTrainer(self):
@@ -41,8 +38,8 @@ class DQNBaseModel(modelBase):
 				self.loss = tf.reduce_sum(tf.where(tf.abs(self.TDerror)<1.0, 0.5*tf.square(self.TDerror), tf.abs(self.TDerror)-0.5))
 			else:
 				self.loss = tf.reduce_sum(tf.square(self.TDerror))
-			# for weightRegul in self.weights[0::2]:
-			# 	self.loss += (1/2)*HP['regularization_factor'] * tf.reduce_sum(tf.square(weightRegul))
+			for weightRegul in self.weights[0::2]:
+				self.loss += (1/2)*HP['regularization_factor'] * tf.reduce_sum(tf.square(weightRegul))
 			self.lossSummary = tf.summary.scalar("loss", self.loss)
 		with tf.name_scope("trainer"):
 			trainer = self.defineTrainer()

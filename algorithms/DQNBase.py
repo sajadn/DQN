@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 from collections import deque
 from ..parameters import HP
 from ..algorithms.algorithmBase import algorithmBase
+import tensorflow as tf
 import abc
 
 
 #DQN algorithm without error clipping
-#TODO newtork target strategy typo
-#TODO up to 30 no-op in the begining of each episode is required
+#TODO up to 30 no-op in the begining of each episode is required if change environment to ALE
 class DQNBase(algorithmBase):
 
 	def __init__(self, env, model, update_policy, memory_policy):
@@ -22,6 +22,9 @@ class DQNBase(algorithmBase):
 		self.GAME_NAME = self.env.env.spec.id
 		self.total_steps = 0
 		self.epsilon_decay = (HP['ep_start']-HP['ep_end'])/HP['ep_reduction_steps']
+		self.reward_tensor = tf.placeholder(shape=(),dtype=tf.float32, name="totalReward")
+		self.reward_summ = tf.summary.scalar("reward", self.reward_tensor)
+
 
 	@abc.abstractmethod
 	def initialState(self):
@@ -70,7 +73,7 @@ class DQNBase(algorithmBase):
 				state = exp['next_state']
 				total += exp['reward']
 				if(self.total_steps%HP['train_freq']==0):
-					summary = self.memory_policy.experienceReplay(self.model, self.target_weights,self.update_policy, total/50)
+					lossSummary = self.memory_policy.experienceReplay(self.model, self.target_weights,self.update_policy)
 				if(HP['ep_start']>=HP['ep_end']):
 					HP['ep_start'] -= self.epsilon_decay
 				if(exp['done'] == True):
@@ -82,15 +85,15 @@ class DQNBase(algorithmBase):
 
 			if(episode%50==0):
 				print ('average (50E):', total/50)
-				total = 0.0
 				print ('step', self.total_steps)
 				print ('e',HP['ep_start'])
-				for s in summary:
-					self.model.writer.add_summary(s, episode)
+				self.model.writer.add_summary(lossSummary, episode)
 				qmeans = self.model.sess.run(self.model.QmeanSummary, feed_dict={self.model.X: self.heldout_set})
 				self.model.writer.add_summary(qmeans, episode)
+				self.model.writer.add_summary(self.model.sess.run(self.reward_summ, feed_dict={self.reward_tensor: total/50}))
 				self.model.writeWeightsInFile(
-					"Reinforcement-Learning/extra/{}/weights/model.ckpt".format(self.GAME_NAME))
+					"Reinforcement-Learning/extra/{}/weights/{}/model.ckpt".format(self.GAME_NAME, HP['folder_number']))
+				total = 0.0
 			print ("Episode {} finished".format(episode))
 
 
@@ -107,13 +110,13 @@ class DQNBase(algorithmBase):
 
 	def play(self):
 		self.model.readFromFile(
-		"Reinforcement-Learning/extra/{}/weights/model.ckpt".format(self.GAME_NAME))
+		"Reinforcement-Learning/extra/{}/weights/{}/model.ckpt".format(self.GAME_NAME, HP['folder_number']))
 		sum = 0
 		for p in range(100):
 			state = self.initialState()
 			total = 0
-			for _ in range(400):
-				#self.env.render()
+			for _ in range(1600):
+				self.env.render()
 				a = np.random.rand(1)
 				if(a<0.01):
 					action = self.env.action_space.sample()

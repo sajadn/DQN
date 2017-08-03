@@ -16,6 +16,7 @@ class DQN(DQNBase):
 
 	def executeAction(self, action, state):
 		s1, reward, done, info = self.env.step(action)
+		reward /= abs(reward)
 		# storeReward = reward if (done==False) else -1
 		return {'state': state,
 				'action': action,

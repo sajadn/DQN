@@ -45,7 +45,7 @@ class CNN(DQNBaseModel):
 		self.QmeanSummary = tf.summary.scalar("Qmean", self.Qmean)
 		self.weights = [w1, b1, w2, b2, w3, b3, w4, b4, w5, b5]
 
-	def conv2d(self, x, output_dim, kernel_size, stride, name='conv2d'):
+	def conv2d(self, x, output_dim, kernel_size, stride, name):
 		data_format='NHWC'
 		with tf.variable_scope(name):
 			stride = [1, stride[0], stride[1], 1]
