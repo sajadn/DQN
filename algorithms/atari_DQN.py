@@ -13,8 +13,19 @@ class DQN(DQNBase):
         return np.dstack(tuple(states))
 
     def executeAction(self, action, state):
-        s1, reward, done, _ = self.env.step(action)
-        reward = reward if reward==0 else reward/abs(reward)
+        cumReward = 0
+        pf = None
+        for i in range(HP['frame_skipping']):
+            s1, reward, done, _ = self.env.step(action)
+            clip = lambda r: r if r==0 else r/abs(r)
+            cumReward += clip(reward)
+            if(done == True):
+                break
+            if(i != (HP['frame_skipping']-1)):
+                pf = s1
+
+        if(pf != None):
+            s1 = np.maximum(s1, pf)
         newObservation = self.model.preprocess(s1)
         newState = state[:, :, 1:]
         newState = np.dstack((newState, newObservation))

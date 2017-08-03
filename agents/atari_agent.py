@@ -9,11 +9,12 @@ from ..models.CNN import CNN
 from ..algorithms.update_strategy.targetNetwork import targetNetworkStrategy
 from ..algorithms.memory_strategy.normalStrategy import NormalStrategy
 import sys
-# from gym.envs.registration import registry, register
+from gym.envs.registration import registry, register
+
+#TODO pass a config object to classes
 
 
-
-env = gym.make(str(sys.argv[2]))
+env = gym.make(str(sys.argv[2])+"NoFrameskip-v4")
 ann = CNN(env)
 upd = targetNetworkStrategy()
 mem = NormalStrategy()
