@@ -18,7 +18,7 @@ class modelBase(abc.ABC):
         init = tf.global_variables_initializer()
         self.sess.run(init)
         self.saver = tf.train.Saver()
-        self.writer = tf.summary.FileWriter("Reinforcement-Learning/extra/{}/tensorboard/{}".format(env.env.spec.id,HP['folder_number']))
+        self.writer = tf.summary.FileWriter("Reinforcement-Learning/extra/{}/tensorboard/{}".format(env.env.spec.id,HP['folder_name']))
         self.writer.add_graph(self.sess.graph)
         self.summary = tf.summary.merge_all()
 

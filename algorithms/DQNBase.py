@@ -21,9 +21,13 @@ class DQNBase(algorithmBase):
 		self.update_policy = update_policy
 		self.GAME_NAME = self.env.env.spec.id
 		self.total_steps = 0
-		self.epsilon_decay = (HP['ep_start']-HP['ep_end'])/HP['ep_reduction_steps']
+		self.epsilon_first_decay = (HP['ep_start']-HP['ep_end'])/HP['ep_first_reduction']
+		self.epsilon_second_decay = (HP['ep_end']-HP['ep_last'])/HP['ep_second_reduction']
 		self.reward_tensor = tf.placeholder(shape=(),dtype=tf.float32, name="totalReward")
 		self.reward_summ = tf.summary.scalar("reward", self.reward_tensor)
+		self.epsilon_tensor = tf.placeholder(shape=(),dtype=tf.float32, name="totalReward")
+		self.epsilon_summ = tf.summary.scalar("epsilon", self.epsilon_tensor)
+
 
 
 	@abc.abstractmethod
@@ -63,7 +67,7 @@ class DQNBase(algorithmBase):
 			state = self.initialState()
 			# for _ in range(random.randint(0,30)):
 			# 	state = self.executeAction(0, state)['state']
-			for _ in range(400):
+			while True:
 				if(self.total_steps%HP['target_update'] == 0):
 					self.target_weights = self.model.getWeights()
 				action = self.selectAction(state)
@@ -75,7 +79,9 @@ class DQNBase(algorithmBase):
 				if(self.total_steps%HP['train_freq']==0):
 					lossSummary = self.memory_policy.experienceReplay(self.model, self.target_weights,self.update_policy)
 				if(HP['ep_start']>=HP['ep_end']):
-					HP['ep_start'] -= self.epsilon_decay
+					HP['ep_start'] -= self.epsilon_first_decay
+				elif(HP['ep_start']>=HP['ep_last']):
+					HP['ep_start'] -= self.epsilon_second_decay
 				if(exp['done'] == True):
 					break
 				if(self.total_steps>=HP['max_step']):
@@ -91,8 +97,9 @@ class DQNBase(algorithmBase):
 				qmeans = self.model.sess.run(self.model.QmeanSummary, feed_dict={self.model.X: self.heldout_set})
 				self.model.writer.add_summary(qmeans, episode)
 				self.model.writer.add_summary(self.model.sess.run(self.reward_summ, feed_dict={self.reward_tensor: total/50}), episode)
+				self.model.writer.add_summary(self.model.sess.run(self.epsilon_summ, feed_dict={self.epsilon_tensor: HP['ep_start']}), episode)
 				self.model.writeWeightsInFile(
-					"Reinforcement-Learning/extra/{}/weights/{}/model.ckpt".format(self.GAME_NAME, HP['folder_number']))
+					"Reinforcement-Learning/extra/{}/weights/{}/model.ckpt".format(self.GAME_NAME, HP['folder_name']))
 				total = 0.0
 			print ("Episode {} finished".format(episode))
 
@@ -110,15 +117,15 @@ class DQNBase(algorithmBase):
 
 	def play(self):
 		self.model.readFromFile(
-		"Reinforcement-Learning/extra/{}/weights/{}/model.ckpt".format(self.GAME_NAME, HP['folder_number']))
+		"Reinforcement-Learning/extra/{}/weights/{}/model.ckpt".format(self.GAME_NAME, HP['folder_name']))
 		sum = 0
 		for p in range(100):
 			state = self.initialState()
 			total = 0
-			for _ in range(1600):
+			while True:
 				self.env.render()
 				a = np.random.rand(1)
-				if(a<0.01):
+				if(a<=0.01):
 					action = self.env.action_space.sample()
 				else:
 					action = self.model.predictAction([state])[0]
