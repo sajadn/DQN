@@ -42,7 +42,7 @@ class DQNBase(algorithmBase):
 			state = self.initialState()
 			total = 0
 			while True:
-				action = self.env.action_space.sample()
+				action = self.selectAction(state, 1)
 				exp = self.executeAction(action, state)
 				self.memory_policy.storeExperience(exp)
 				state = exp['next_state']
@@ -70,7 +70,7 @@ class DQNBase(algorithmBase):
 			while True:
 				if(self.total_steps%HP['target_update'] == 0):
 					self.target_weights = self.model.getWeights()
-				action = self.selectAction(state)
+				action = self.selectAction(state, HP['ep_start'])
 				exp = self.executeAction(action, state)
 				self.memory_policy.storeExperience(exp)
 				self.total_steps += 1
@@ -104,11 +104,10 @@ class DQNBase(algorithmBase):
 			print ("Episode {} finished".format(episode))
 
 
-
 	#e-greddy
-	def selectAction(self, state):
-		if np.random.rand(1) < HP['ep_start']:
-			action = self.env.action_space.sample()
+	def selectAction(self, state, prob):
+		if np.random.rand(1) <= prob:
+			action = random.randint(0, self.model.output_size-1)
 		else:
 			action = self.model.predictAction([state])[0]
 		return action
@@ -124,11 +123,7 @@ class DQNBase(algorithmBase):
 			total = 0
 			while True:
 				self.env.render()
-				a = np.random.rand(1)
-				if(a<=0.01):
-					action = self.env.action_space.sample()
-				else:
-					action = self.model.predictAction([state])[0]
+				action = self.selectAction(state, 0.01)
 				exp = self.executeAction(action, state)
 				state = exp['next_state']
 				total+= exp['reward']
