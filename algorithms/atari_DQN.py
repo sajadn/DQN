@@ -16,7 +16,7 @@ class DQN(DQNBase):
         cumReward = 0
         pf = []
         for i in range(HP['frame_skipping']):
-            s1, reward, done, _ = self.env.step(action+HP['remove_no_op'])
+            s1, reward, done, _ = self.env.step(action)
             clip = lambda r: r if r==0 else r/abs(r)
             cumReward += clip(reward)
             if(done == True):
