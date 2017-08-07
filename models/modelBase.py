@@ -11,7 +11,7 @@ class modelBase(abc.ABC):
         os.environ["CUDA_VISIBLE_DEVICES"] = str(HP['GPU_number'])
         self.sess = tf.Session()
         self.input_size = env.observation_space.shape[0]
-        self.output_size = env.action_space.n
+        self.output_size = env.action_space.n - HP['remove_no_op']
         self.definePlaceHolders()
         self.defineNNArchitecture()
         self.defineLossAndTrainer()

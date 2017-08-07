@@ -27,6 +27,7 @@ class DQNBase(algorithmBase):
 		self.reward_summ = tf.summary.scalar("reward", self.reward_tensor)
 		self.epsilon_tensor = tf.placeholder(shape=(),dtype=tf.float32, name="totalReward")
 		self.epsilon_summ = tf.summary.scalar("epsilon", self.epsilon_tensor)
+		self.betaStep = (1-HP['beta'])/HP['ep_second_reduction']
 
 
 
@@ -42,7 +43,7 @@ class DQNBase(algorithmBase):
 			state = self.initialState()
 			total = 0
 			while True:
-				action = self.env.action_space.sample()
+				action = self.selectAction(state, 1)
 				exp = self.executeAction(action, state)
 				self.memory_policy.storeExperience(exp)
 				state = exp['next_state']
@@ -54,13 +55,11 @@ class DQNBase(algorithmBase):
 				break;
 		print ("Random Agent Finished")
 
-	def getHeldoutSet(self):
-		temp = self.memory_policy.selectMiniBatch()
-		return [t['state'] for t in temp]
+
 
 	def train(self):
 		self.fillERMemory()
-		self.heldout_set = self.getHeldoutSet()
+		self.heldout_set = self.memory_policy.getHeldoutSet()
 		self.total_steps = 0
 		total = 0.0
 		for episode in range(1, HP['num_episodes']):
@@ -70,7 +69,7 @@ class DQNBase(algorithmBase):
 			while True:
 				if(self.total_steps%HP['target_update'] == 0):
 					self.target_weights = self.model.getWeights()
-				action = self.selectAction(state)
+				action = self.selectAction(state, HP['ep_start'])
 				exp = self.executeAction(action, state)
 				self.memory_policy.storeExperience(exp)
 				self.total_steps += 1
@@ -82,6 +81,7 @@ class DQNBase(algorithmBase):
 					HP['ep_start'] -= self.epsilon_first_decay
 				elif(HP['ep_start']>=HP['ep_last']):
 					HP['ep_start'] -= self.epsilon_second_decay
+				HP['beta'] += self.betaStep
 				if(exp['done'] == True):
 					break
 				if(self.total_steps>=HP['max_step']):
@@ -104,11 +104,10 @@ class DQNBase(algorithmBase):
 			print ("Episode {} finished".format(episode))
 
 
-
 	#e-greddy
-	def selectAction(self, state):
-		if np.random.rand(1) < HP['ep_start']:
-			action = self.env.action_space.sample()
+	def selectAction(self, state, prob):
+		if np.random.rand(1) <= prob:
+			action = random.randint(0, self.model.output_size-1)
 		else:
 			action = self.model.predictAction([state])[0]
 		return action
@@ -124,11 +123,7 @@ class DQNBase(algorithmBase):
 			total = 0
 			while True:
 				self.env.render()
-				a = np.random.rand(1)
-				if(a<=0.01):
-					action = self.env.action_space.sample()
-				else:
-					action = self.model.predictAction([state])[0]
+				action = self.selectAction(state, 0.01)
 				exp = self.executeAction(action, state)
 				state = exp['next_state']
 				total+= exp['reward']

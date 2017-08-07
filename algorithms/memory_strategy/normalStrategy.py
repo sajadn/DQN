@@ -12,6 +12,10 @@ class NormalStrategy:
 	def getLength(self):
 		return len(self.memory)
 
+	def getHeldoutSet(self):
+		temp = self.selectMiniBatch()
+		return [t['state'] for t in temp]
+
 	def selectMiniBatch(self):
 		rcount = min(len(self.memory), HP['mini_batch_size'])
 		return random.sample(self.memory, rcount)

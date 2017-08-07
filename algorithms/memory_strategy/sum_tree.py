@@ -5,13 +5,21 @@ import random
 class SumTree:
 
     def __init__(self, size, values=None, probs=None):
+        self.size = size
         self.tree_levels = int(math.ceil(math.log(size, 2))+1)
         self.data = np.zeros(2**(self.tree_levels-1), dtype= np.object)
         self.prob = np.zeros((2**self.tree_levels)-1)
         self.start = int(2**(self.tree_levels-1))-1
         self._cursor = self.start
+        self.flag = False
         if values is not None and probs is not None:
             self.initial_values(values, probs)
+
+    def getLength(self):
+        if(self.flag == True):
+            return size
+        else:
+            return self._cursor-self.start
 
     def initial_values(self, values, probs):
         for index in range(len(values)):
@@ -26,6 +34,7 @@ class SumTree:
     def insert(self, value, probs):
         if(self._cursor> 2**(self.tree_levels)-2):
             self._cursor= self.start
+            self.flag = True
         self.data[self._cursor - self.start] = value
         self.prob[self._cursor] = probs
         self._update(self._parent(self._cursor))
