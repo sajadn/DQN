@@ -58,12 +58,12 @@ class DQNBase(algorithmBase):
 
 
 	def train(self):
-		self.heldout_set = self.memory_policy.getHeldoutSet()
 		total = 0.0
 		state = self.initialState()
 		self.target_weights = self.model.getWeights()
 		# for _ in range(random.randint(0,30)):
 		# 	state = self.executeAction(0, state)['state']
+		self.heldout_set = None
 		episode = 1
 		for total_steps in range(HP['max_step']):
 			action = self.selectAction(state, HP['ep_start'])
@@ -72,6 +72,8 @@ class DQNBase(algorithmBase):
 			state = exp['next_state']
 			total += exp['reward']
 			if(total_steps > HP['initial_experience_sizes']):
+				if(self.heldout_set == None):
+					self.heldout_set = self.memory_policy.getHeldoutSet()
 				if(total_steps%HP['target_update'] == 0):
 					self.target_weights = self.model.getWeights()
 				if(total_steps%HP['train_freq'] == 0):
