@@ -85,19 +85,20 @@ class DQNBase(algorithmBase):
 				HP['beta'] += self.betaStep
 
 			if(exp['done'] == True):
-				episode+=1
-				if(episode%50==0 ):
-					print ('average (50E):', total/50)
-					print ('step', total_steps)
-					print ('e',HP['ep_start'])
-					self.model.writer.add_summary(lossSummary, episode)
-					qmeans = self.model.sess.run(self.model.QmeanSummary, feed_dict={self.model.X: self.heldout_set})
-					self.model.writer.add_summary(qmeans, episode)
-					self.model.writer.add_summary(self.model.sess.run(self.reward_summ, feed_dict={self.reward_tensor: total/50}), episode)
-					self.model.writer.add_summary(self.model.sess.run(self.epsilon_summ, feed_dict={self.epsilon_tensor: HP['ep_start']}), episode)
-					self.model.writeWeightsInFile(
-						"Reinforcement-Learning/extra/{}/weights/{}/model.ckpt".format(self.GAME_NAME, HP['folder_name']))
-					total = 0.0
+				if(total_steps > HP['initial_experience_sizes']):
+					episode+=1
+					if(episode%50==0 ):
+						print ('average (50E):', total/50)
+						print ('step', total_steps)
+						print ('e',HP['ep_start'])
+						self.model.writer.add_summary(lossSummary, episode)
+						qmeans = self.model.sess.run(self.model.QmeanSummary, feed_dict={self.model.X: self.heldout_set})
+						self.model.writer.add_summary(qmeans, episode)
+						self.model.writer.add_summary(self.model.sess.run(self.reward_summ, feed_dict={self.reward_tensor: total/50}), episode)
+						self.model.writer.add_summary(self.model.sess.run(self.epsilon_summ, feed_dict={self.epsilon_tensor: HP['ep_start']}), episode)
+						self.model.writeWeightsInFile(
+							"Reinforcement-Learning/extra/{}/weights/{}/model.ckpt".format(self.GAME_NAME, HP['folder_name']))
+						total = 0.0
 				self.env.reset()
 				print ("Episode {} finished".format(episode))
 
