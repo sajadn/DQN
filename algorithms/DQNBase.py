@@ -38,60 +38,61 @@ class DQNBase(algorithmBase):
 	def executeAction(self, action):
 		""
 
-	def fillERMemory(self):
-		while True:
-			state = self.initialState()
-			total = 0
-			while True:
-				action = self.selectAction(state, 1)
-				exp = self.executeAction(action, state)
-				self.memory_policy.storeExperience(exp)
-				state = exp['next_state']
-				total += exp['reward']
-				if exp['done']:
-					print("Episode finished")
-					break
-			if(self.memory_policy.getLength() >= (HP['initial_experience_sizes'])):
-				break;
-		print ("Random Agent Finished")
+	# def fillERMemory(self):
+	# 	while True:
+	# 		state = self.initialState()
+	# 		total = 0
+	# 		while True:
+	# 			action = self.selectAction(state, 1)
+	# 			exp = self.executeAction(action, state)
+	# 			self.memory_policy.storeExperience(exp)
+	# 			state = exp['next_state']
+	# 			total += exp['reward']
+	# 			if exp['done']:
+	# 				print("Episode finished")
+	# 				break
+	# 		if(self.memory_policy.getLength() >= (HP['initial_experience_sizes'])):
+	# 			break;
+	# 	print ("Random Agent Finished")
 
 
 
 	def train(self):
-		self.fillERMemory()
 		self.heldout_set = self.memory_policy.getHeldoutSet()
-		self.total_steps = 0
 		total = 0.0
-		for episode in range(1, HP['num_episodes']):
-			state = self.initialState()
-			# for _ in range(random.randint(0,30)):
-			# 	state = self.executeAction(0, state)['state']
-			while True:
-				if(self.total_steps%HP['target_update'] == 0):
+		state = self.initialState()
+		self.target_weights = self.model.getWeights()
+		# for _ in range(random.randint(0,30)):
+		# 	state = self.executeAction(0, state)['state']
+		episode = 1
+		for total_steps in range(HP['max_step']):
+			action = self.selectAction(state, HP['ep_start'])
+			exp = self.executeAction(action, state)
+			self.memory_policy.storeExperience(exp)
+			state = exp['next_state']
+			total += exp['reward']
+			if(total_steps > HP['initial_experience_sizes']):
+				if(total_steps%HP['target_update'] == 0):
 					self.target_weights = self.model.getWeights()
-				action = self.selectAction(state, HP['ep_start'])
-				exp = self.executeAction(action, state)
-				self.memory_policy.storeExperience(exp)
-				self.total_steps += 1
-				state = exp['next_state']
-				total += exp['reward']
-				if(self.total_steps%HP['train_freq']==0):
+				if(total_steps%HP['train_freq'] == 0):
 					lossSummary = self.memory_policy.experienceReplay(self.model, self.target_weights,self.update_policy)
 				if(HP['ep_start']>=HP['ep_end']):
 					HP['ep_start'] -= self.epsilon_first_decay
 				elif(HP['ep_start']>=HP['ep_last']):
 					HP['ep_start'] -= self.epsilon_second_decay
 				HP['beta'] += self.betaStep
-				if(exp['done'] == True):
-					break
-				if(self.total_steps>=HP['max_step']):
-					print ("Train Finished")
-					return
+			if(exp['done'] == True):
+				episode+=1
+				self.env.reset()
+				print ("Episode {} finished".format(episode))
+			if(total_steps>=HP['max_step']):
+				print ("Train Finished")
+				return
 
 
 			if(episode%50==0):
 				print ('average (50E):', total/50)
-				print ('step', self.total_steps)
+				print ('step', total_steps)
 				print ('e',HP['ep_start'])
 				self.model.writer.add_summary(lossSummary, episode)
 				qmeans = self.model.sess.run(self.model.QmeanSummary, feed_dict={self.model.X: self.heldout_set})
@@ -101,7 +102,7 @@ class DQNBase(algorithmBase):
 				self.model.writeWeightsInFile(
 					"Reinforcement-Learning/extra/{}/weights/{}/model.ckpt".format(self.GAME_NAME, HP['folder_name']))
 				total = 0.0
-			print ("Episode {} finished".format(episode))
+
 
 
 	#e-greddy

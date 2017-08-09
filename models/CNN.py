@@ -27,7 +27,10 @@ class CNN(DQNBaseModel):
 
 #TODO exponensial decay
 	def defineTrainer(self):
-		return tf.train.AdamOptimizer(learning_rate=HP['learning_rate'])
+		return tf.train.RMSPropOptimizer(
+            		learning_rate = HP['learning_rate'],
+           			epsilon=0.01,
+            		momentum=0.95)
 
 	def defineNNArchitecture(self):
 		l1, w1, b1 = self.conv2d(self.X, 32, [8, 8], [4, 4], name='l1')
