@@ -8,9 +8,9 @@ from ..parameters import HP
 from ..algorithms.algorithmBase import algorithmBase
 import tensorflow as tf
 import abc
+import os
 
 
-#DQN algorithm without error clipping
 #TODO up to 30 no-op in the begining of each episode is required if change environment to ALE
 class DQNBase(algorithmBase):
 
@@ -25,7 +25,7 @@ class DQNBase(algorithmBase):
 		self.epsilon_second_decay = (HP['ep_end']-HP['ep_last'])/HP['ep_second_reduction']
 		self.reward_tensor = tf.placeholder(shape=(),dtype=tf.float32, name="totalReward")
 		self.reward_summ = tf.summary.scalar("reward", self.reward_tensor)
-		self.epsilon_tensor = tf.placeholder(shape=(),dtype=tf.float32, name="totalReward")
+		self.epsilon_tensor = tf.placeholder(shape=(),dtype=tf.float32, name="epsilon")
 		self.epsilon_summ = tf.summary.scalar("epsilon", self.epsilon_tensor)
 		self.betaStep = (1-HP['beta'])/HP['ep_second_reduction']
 
@@ -38,27 +38,8 @@ class DQNBase(algorithmBase):
 	def executeAction(self, action):
 		""
 
-	# def fillERMemory(self):
-	# 	while True:
-	# 		state = self.initialState()
-	# 		total = 0
-	# 		while True:
-	# 			action = self.selectAction(state, 1)
-	# 			exp = self.executeAction(action, state)
-	# 			self.memory_policy.storeExperience(exp)
-	# 			state = exp['next_state']
-	# 			total += exp['reward']
-	# 			if exp['done']:
-	# 				print("Episode finished")
-	# 				break
-	# 		if(self.memory_policy.getLength() >= (HP['initial_experience_sizes'])):
-	# 			break;
-	# 	print ("Random Agent Finished")
-
-
-
 	def train(self):
-		total = 0.0
+		total_reward = 0.0
 		state = self.initialState()
 		self.target_weights = self.model.getWeights()
 		# for _ in range(random.randint(0,30)):
@@ -70,7 +51,7 @@ class DQNBase(algorithmBase):
 			exp = self.executeAction(action, state)
 			self.memory_policy.storeExperience(exp)
 			state = exp['next_state']
-			total += exp['reward']
+			total_reward += exp['reward']
 			if(total_steps > HP['initial_experience_sizes']):
 				if(self.heldout_set == None):
 					self.heldout_set = self.memory_policy.getHeldoutSet()
@@ -83,27 +64,30 @@ class DQNBase(algorithmBase):
 				elif(HP['ep_start']>=HP['ep_last']):
 					HP['ep_start'] -= self.epsilon_second_decay
 				HP['beta'] += self.betaStep
-
 			if(exp['done'] == True):
 				if(total_steps > HP['initial_experience_sizes']):
 					episode+=1
 					if(episode%50==0 ):
-						print ('average (50E):', total/50)
-						print ('step', total_steps)
-						print ('e',HP['ep_start'])
-						self.model.writer.add_summary(lossSummary, episode)
-						qmeans = self.model.sess.run(self.model.QmeanSummary, feed_dict={self.model.X: self.heldout_set})
-						self.model.writer.add_summary(qmeans, episode)
-						self.model.writer.add_summary(self.model.sess.run(self.reward_summ, feed_dict={self.reward_tensor: total/50}), episode)
-						self.model.writer.add_summary(self.model.sess.run(self.epsilon_summ, feed_dict={self.epsilon_tensor: HP['ep_start']}), episode)
-						self.model.writeWeightsInFile(
-							"Reinforcement-Learning/extra/{}/weights/{}/model.ckpt".format(self.GAME_NAME, HP['folder_name']))
-						total = 0.0
+						self.writeSummary(total_steps, total_reward, lossSummary, episode)
+						total_reward = 0.0
 				self.env.reset()
 				print ("Episode {} finished".format(episode))
 
 
 
+	def writeSummary(self, total_steps, total_reward, lossSummary, episode):
+		print ('average (50E):', total_reward/50)
+		print ('step', total_steps)
+		print ('e',HP['ep_start'])
+		self.model.writer.add_summary(lossSummary, episode)
+		qmeans = self.model.sess.run(self.model.QmeanSummary, feed_dict={self.model.X: self.heldout_set})
+		self.model.writer.add_summary(qmeans, episode)
+		self.model.writer.add_summary(self.model.sess.run(self.reward_summ, feed_dict={self.reward_tensor: total_reward/50}), episode)
+		self.model.writer.add_summary(self.model.sess.run(self.epsilon_summ, feed_dict={self.epsilon_tensor: HP['ep_start']}), episode)
+		directory = "Reinforcement-Learning/extra/{}/weights/{}/model.ckpt".format(self.GAME_NAME, HP['folder_name'])
+		if not os.path.exists(directory):
+		    os.makedirs(directory)
+		self.model.writeWeightsInFile(directory)
 
 
 	#e-greddy

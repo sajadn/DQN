@@ -10,7 +10,7 @@ from ..algorithms.update_strategy.targetNetwork import targetNetworkStrategy
 from ..algorithms.memory_strategy.normalStrategy import NormalStrategy
 import sys
 
-env = gym.make('CartPole-v0')
+env = gym.make(sys.argv[2])
 ann = FNN(env)
 upd = targetNetworkStrategy()
 mem = NormalStrategy()

@@ -15,19 +15,7 @@ from ..algorithms.memory_strategy.prioritizedStrategy import PriorizedStrategy
 import sys
 from gym.envs.registration import registry, register
 
-#TODO pass a config object to classes
 
-# lr = [0.001, 0.00025]
-# reg = [1,0]
-# GPUs = [1,2,3,4]
-# loc = ''
-# for l in lr:
-#     loc+='learningrate'+str('l')+"_"
-#     HP['learning_rate']=l
-#     for r in reg:
-#         loc+= "withregularization" if r ==1 else "withoutregularization"
-#         HP['regularization'] = r
-#         HP['folder_name'] = loc
 
 env = gym.make(str(sys.argv[2]))
 ann = CNN(env)
