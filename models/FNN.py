@@ -7,7 +7,7 @@ from ..models.modelBase import modelBase
 from ..models.DQNBaseModel import DQNBaseModel
 
 
-NUMBER_HIDDEN_NODES = 128
+NUMBER_HIDDEN_NODES = 64
 class FNN(DQNBaseModel):
 
 	def defineInput(self):

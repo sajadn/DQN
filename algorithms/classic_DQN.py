@@ -23,3 +23,6 @@ class DQN(DQNBase):
 				'reward': reward,
 				'next_state': s1,
 				'done': done}
+
+	def appendNewObservation(self, observation, state):
+		return observation

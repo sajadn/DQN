@@ -26,11 +26,15 @@ class DQN(DQNBase):
 
         if(len(pf) != 0):
             s1 = np.maximum(s1, pf)
-        newObservation = self.model.preprocess(s1)
-        newState = state[:, :, 1:]
-        newState = np.dstack((newState, newObservation))
+
+        newState = self.appendNewObservation(s1, state)
         return {'state': state,
                'action': action,
                'reward': cumReward,
                'next_state': newState,
                'done': done }
+
+    def appendNewObservation(self, observation, state):
+        observation = self.model.preprocess(observation)
+        newState = state[:, :, 1:]
+        return np.dstack((newState, observation))

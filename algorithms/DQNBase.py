@@ -68,11 +68,11 @@ class DQNBase(algorithmBase):
 					params.epsilon -= self.epsilon_second_decay
 				params.beta += self.betaStep
 			if(exp['done'] == True):
-				state = self.env.reset()
+				state = self.appendNewObservation(self.env.reset(), state)
 				if(total_steps > params.initial_experience_sizes):
 					print ("Episode {} finished".format(episode))
 					episode+=1
-					if(episode%51==0 ):
+					if(episode%50==0 ):
 						self.writeSummary(total_steps, total_reward,
 						 lossSummary, episode)
 						total_reward = 0.0
@@ -116,7 +116,7 @@ class DQNBase(algorithmBase):
 			total = 0
 			while True:
 				self.env.render()
-				action = self.selectAction(state, 1)
+				action = self.selectAction(state, 0.01)
 				exp = self.executeAction(action, state)
 				state = exp['next_state']
 				total+= exp['reward']
