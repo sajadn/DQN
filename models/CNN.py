@@ -2,7 +2,7 @@ import gym
 import numpy as np
 import random
 import tensorflow as tf
-from ..parameters import HP
+from ..config import params
 # import matplotlib.pyplot as plt
 from scipy.misc import imresize, imsave
 from itertools import chain
@@ -23,12 +23,12 @@ class CNN(DQNBaseModel):
 		return imresize(data, (WIDTH, WIDTH))
 
 	def defineInput(self):
-	 	return tf.placeholder(shape=[None, WIDTH, WIDTH, HP['stacked_frame_size']],dtype=tf.float32, name="X")
+	 	return tf.placeholder(shape=[None, WIDTH, WIDTH, params.stacked_frame_size],dtype=tf.float32, name="X")
 
 #TODO exponensial decay
 	def defineTrainer(self):
 		return tf.train.RMSPropOptimizer(
-            		learning_rate = HP['learning_rate'],
+            		learning_rate = params.learning_rate,
            			epsilon=0.01,
             		momentum=0.95)
 

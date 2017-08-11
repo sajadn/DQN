@@ -1,6 +1,6 @@
 import numpy as np
 import random
-from ..parameters import HP
+from ..config import params
 from ..algorithms.DQNBase import DQNBase
 
 class DQN(DQNBase):
@@ -8,20 +8,20 @@ class DQN(DQNBase):
         states = []
         obs = self.env.reset()
         obs = self.model.preprocess(obs)
-        for _ in range(HP['stacked_frame_size']):
+        for _ in range(params.stacked_frame_size):
             states.append(obs)
         return np.dstack(tuple(states))
 
     def executeAction(self, action, state):
         cumReward = 0
         pf = []
-        for i in range(HP['frame_skipping']):
-            s1, reward, done, _ = self.env.step(action+HP['remove_no_op'])
+        for i in range(params.frame_skipping):
+            s1, reward, done, _ = self.env.step(action+ params.remove_no_op)
             clip = lambda r: r if r==0 else r/abs(r)
             cumReward += clip(reward)
             if(done == True):
                 break
-            if(i != (HP['frame_skipping']-1)):
+            if(i != (params.frame_skipping-1)):
                 pf = s1
 
         if(len(pf) != 0):

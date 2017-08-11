@@ -1,5 +1,5 @@
 import numpy as np
-from ...parameters import HP
+from ...config import params
 class targetNetworkStrategy:
     def execute(self, model, states, targetWeights):
         feed_dict = { model.X: states }

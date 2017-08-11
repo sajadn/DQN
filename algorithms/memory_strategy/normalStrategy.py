@@ -1,4 +1,4 @@
-from ...parameters import HP
+from ...config import params
 from collections import deque
 import random
 import numpy as np
@@ -17,11 +17,11 @@ class NormalStrategy:
 		return [t['state'] for t in temp]
 
 	def selectMiniBatch(self):
-		rcount = min(len(self.memory), HP['mini_batch_size'])
+		rcount = min(len(self.memory), params.mini_batch_size)
 		return random.sample(self.memory, rcount)
 
 	def storeExperience(self, exp):
-		if(len(self.memory) > HP['size_of_experience']):
+		if(len(self.memory) > params.size_of_experience):
 			self.memory.popleft()
 		self.memory.append(exp)
 
@@ -40,7 +40,7 @@ class NormalStrategy:
 			if(exp['done']==True):
 				Y_val.append(exp['reward'])
 			else:
-				Y_val.append(exp['reward'] + nextStatesValues[index]*HP['y'])
+				Y_val.append(exp['reward'] + nextStatesValues[index]*params.y)
 		X_val = np.array(X_val)
 		Y_val = np.array(Y_val)
 		summary, TDerror = model.executeStep(X_val, Y_val, target_action_mask)

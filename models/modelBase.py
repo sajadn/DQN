@@ -1,25 +1,25 @@
 import abc
 import tensorflow as tf
 import os
-from ..parameters import HP
+from ..config import params
 
 
 #TODO replace X with input and Q with output
 
 class modelBase(abc.ABC):
     def __init__(self, env):
-        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=HP['GPU_fraction'])
-        os.environ["CUDA_VISIBLE_DEVICES"] = str(HP['GPU_number'])
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=params.GPU_fraction)
+        os.environ["CUDA_VISIBLE_DEVICES"] = str(params.GPU_number)
         self.sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
         self.input_size = env.observation_space.shape[0]
-        self.output_size = env.action_space.n - HP['remove_no_op']
+        self.output_size = env.action_space.n - params.remove_no_op
         self.definePlaceHolders()
         self.defineNNArchitecture()
         self.defineLossAndTrainer()
         init = tf.global_variables_initializer()
         self.sess.run(init)
         self.saver = tf.train.Saver()
-        self.writer = tf.summary.FileWriter("Reinforcement-Learning/extra/{}/tensorboard/{}".format(env.env.spec.id,HP['folder_name']))
+        self.writer = tf.summary.FileWriter("DQN/extra/{}/tensorboard/{}".format(env.env.spec.id,params.folder_name))
         self.writer.add_graph(self.sess.graph)
         self.summary = tf.summary.merge_all()
 

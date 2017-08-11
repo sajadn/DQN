@@ -4,7 +4,6 @@ import random
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from collections import deque
-from ..parameters import HP
 from ..algorithms.DQNBase import DQNBase
 
 
@@ -16,7 +15,8 @@ class DQN(DQNBase):
 
 	def executeAction(self, action, state):
 		s1, reward, done, info = self.env.step(action)
-		reward /= abs(reward)
+		clip = lambda r: r if r==0 else r/abs(r)
+		reward = clip(reward)
 		# storeReward = reward if (done==False) else -1
 		return {'state': state,
 				'action': action,
