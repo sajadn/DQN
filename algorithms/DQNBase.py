@@ -23,9 +23,9 @@ class DQNBase(algorithmBase):
 		self.total_steps = 0
 		self.epsilon_first_decay = (params.epsilon-params.epsilon_end)/params.ep_first_reduction
 		self.epsilon_second_decay = (params.epsilon_end-params.epsilon_last)/params.ep_second_reduction
-		self.reward_tensor = tf.placeholder(shape=(),dtype=tf.float32, name="totalReward")
+		self.reward_tensor = tf.placeholder(shape=(),dtype=tf.float32)
 		self.reward_summ = tf.summary.scalar("reward", self.reward_tensor)
-		self.epsilon_tensor = tf.placeholder(shape=(),dtype=tf.float32, name="epsilon")
+		self.epsilon_tensor = tf.placeholder(shape=(),dtype=tf.float32)
 		self.epsilon_summ = tf.summary.scalar("epsilon", self.epsilon_tensor)
 		self.betaStep = (1-params.beta)/params.ep_second_reduction
 		self.variablesDirectory = "DQN/extra/{}/weights/{}/model.ckpt".format(self.GAME_NAME, params.folder_name)
@@ -68,6 +68,7 @@ class DQNBase(algorithmBase):
 					params.epsilon -= self.epsilon_second_decay
 				params.beta += self.betaStep
 			if(exp['done'] == True):
+				#TODO check it
 				state = self.appendNewObservation(self.env.reset(), state)
 				if(total_steps > params.initial_experience_sizes):
 					print ("Episode {} finished".format(episode))

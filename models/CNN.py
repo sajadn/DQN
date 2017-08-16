@@ -18,9 +18,9 @@ WIDTH = 84
 class CNN(DQNBaseModel):
 
 	def preprocess(self, frame):
-		#TODO change order of these two lines
+		#TODO divid pixels by 255
 		data = np.dot(frame, [0.2126, 0.7152, 0.0722]).astype(np.uint8)
-		return imresize(data, (WIDTH, WIDTH))
+		return imresize(data, (WIDTH, WIDTH))/255.0
 
 	def defineInput(self):
 	 	return tf.placeholder(shape=[None, WIDTH, WIDTH, params.stacked_frame_size],dtype=tf.float32, name="X")
@@ -38,7 +38,7 @@ class CNN(DQNBaseModel):
 		l3, w3, b3 = self.conv2d(l2, 64, [3, 3], [1, 1], name='l3')
 		shape = l3.get_shape().as_list()
 		l3_flat = tf.reshape(l3, [-1, reduce(lambda x, y: x * y, shape[1:])])
-		l4, w4, b4 = self.linear(l3_flat, 512, activation_fn=tf.nn.relu, name='l4')
+		l4, w4, b4 = self.linear(l3_flat, 256, activation_fn=tf.nn.relu, name='l4')
 		self.Qprime, w5, b5 = self.linear(l4, self.output_size, name='l5')
 		self.P = tf.argmax(self.Qprime, 1)
 		self.Qmean = tf.reduce_mean(tf.reduce_max(self.Qprime,axis = 1))
