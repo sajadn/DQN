@@ -1,8 +1,6 @@
 # DQN
 Implementation of DQN, Double DQN, Prioritized DQN using [Tensorflow](https://github.com/tensorflow/tensorflow) and [GYM](https://github.com/openai/gym)
 
-Dueling DQN(in progress)
-
 # References
 - [Nature DQN](https://www.nature.com/nature/journal/v518/n7540/full/nature14236.html)
 - [Double DQN](https://arxiv.org/abs/1509.06461)
